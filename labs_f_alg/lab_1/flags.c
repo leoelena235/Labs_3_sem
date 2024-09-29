@@ -61,7 +61,7 @@ enum Errors find_multiples(int x)
     {
         return INVALID_INPUT;
     }
-    multiples = (int *)malloc(sizeof(int) * (100 / x + 1));
+    multiples = (int *)malloc(sizeof(int) * ((size_t)(100 / x) + 1));
     if (multiples == NULL)
     {
         return INVALID_MEMORY;
@@ -109,10 +109,11 @@ enum Errors prime_err(long int number)
     {
         return PRIME_NEGATIVE;
     }
-    else if (number <= 1)
+    else if (number == 1 || number == 0)
     {
         return PRIME_NOT_NATURAL;
     }
+
     for (long int i = 2; i * i <= number; i++)
     {
         if (number % i == 0)
@@ -120,98 +121,111 @@ enum Errors prime_err(long int number)
             return PRIME_NOT;
         }
     }
+
     return OK;
 }
 
-enum Errors split_number_to_digits(long int number, char **result, int *size_arr_res)
+enum Errors hex_digit(long long int number, char **result_s, int *count)
 {
-    (*size_arr_res)++;
-    *result = (char *)calloc((*size_arr_res + 1), sizeof(char));
-    if (*result == NULL)
-        return INVALID_MEMORY;
+    *count = 0;
+    int is_negative = 0;
 
     if (number < 0)
     {
-        (*result)[0] = '-';
-        number = labs(number);
+        is_negative = 1;
+        number = -number;
+        (*count)++;
     }
 
-    for (int i = *size_arr_res - 1; i >= 0; --i)
+    long long int temp = number;
+    while (temp != 0)
     {
-        (*result)[i + 1] = '0' + (number % 10);
-        number /= 10;
+        temp /= 16;
+        (*count)++;
     }
 
-    (*size_arr_res)++;
+    if (*count == 0)
+    {
+        *count = 1;
+    }
+
+    *result_s = (char *)malloc((*count + 1) * sizeof(char));
+    if (*result_s == NULL)
+    {
+        free(*result_s);
+        return INVALID_MEMORY;
+    }
+
+    if (is_negative)
+    {
+        (*result_s)[0] = '-';
+    }
+    for (long long int i = *count - 1; i >= (is_negative ? 1 : 0); i--)
+    {
+        int digit = llabs(number % 16);
+        if (digit < 10)
+        {
+            (*result_s)[i] = '0' + digit;
+        }
+        else
+        {
+            (*result_s)[i] = 'A' + digit - 10;
+        }
+        number /= 16;
+    }
+    (*result_s)[*count] = '\0';
     return OK;
 }
 
-enum Errors table_of_degrees(long int ***result, long int number)
+enum Errors degree_of_table(int number, long long int ***result_e)
 {
-
-    *result = (long int **)malloc(11 * sizeof(long int *));
-    if ((*result) == NULL)
-        return INVALID_MEMORY;
-
-    for (int i = 0; i <= 10; ++i)
+    if (number > 10 || number < 1)
     {
-        (*result)[i] = (long int *)malloc((number + 1) * sizeof(long int));
+        return INVALID_INPUT;
+    }
 
-        if ((*result)[i] == NULL)
+
+    *result_e = (long long int **)malloc(10 * sizeof(long long int *));
+    if (*result_e == NULL)
+    {
+        return INVALID_MEMORY;
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        (*result_e)[i] = (long long int *)malloc(number * sizeof(long long int));
+        if ((*result_e)[i] == NULL)
         {
-            for (int j = 0; j < i; ++j)
+            for (int m = 0; m < i; m++)
             {
-                free((*result)[j]);
+                free((*result_e)[m]);
             }
-            free(*result);
+            free(*result_e);
             return INVALID_MEMORY;
         }
     }
-
-    (*result)[0][0] = 1;
-    for (int i = 1; i < 11; ++i)
+    for (int base = 1; base <= 10; ++base)
     {
-        (*result)[i][0] = 1;
-        (*result)[i][1] = i;
-    }
-
-    for (int i = 2; i <= number; ++i)
-    {
-        (*result)[0][i] = 0;
-        (*result)[2][i] = 1;
-    }
-
-    for (int base = 0; base <= 10; ++base)
-    {
-        for (int degree = 2; degree <= number; ++degree)
+        for (int degree = 1; degree <= number; ++degree)
         {
-            (*result)[base][degree] = (*result)[base][degree - 1] * base;
+            (*result_e)[base - 1][degree - 1] = (long long int)round(pow(base, degree)); // чекунуть
         }
     }
-
     return OK;
 }
 
-enum Errors sum_of_numbers(long int number, long long int *result)
+enum Errors sum_of_numbers(long int number, long long int *result_a)
 {
-    int flag = 1;
-    if (number < 0)
+    if (number < 1)
     {
-        number = labs(number);
-        flag = -1;
+        return INVALID_INPUT;
     }
-    for (int i = 1; i <= number; ++i)
-    {
-        if (*result > INT_MAX - i || *result < INT_MIN + i)
-            return INVALID_MEMORY;
 
-        *result += i;
-    }
-    *result = *result * flag;
+    *result_a = (long long int)number * (number + 1) / 2;
+
     return OK;
 }
 
-long int factorial(int n)
+long int factorial(int n) // TODO все гуд, но чекунуть, что максим писал
 {
     if (n == 0)
     {
@@ -231,7 +245,7 @@ enum Errors factorial_with_overflow_check(long int number)
     }
     else if (number > 20)
     {
-        return FACTORIAL_OVERFLOW;
+        return INVALID_MEMORY;
     }
     else
     {

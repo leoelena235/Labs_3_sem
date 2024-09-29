@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
         switch (prime_err(number))
         {
-        case PRIME_OK:
+        case OK:
             printf("Число является простым\n");
             break;
         case PRIME_NEGATIVE:
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
             printf("Число является составным\n");
             break;
         case PRIME_NOT_NATURAL:
-            printf("Число не является натуральным\n");
+            printf("Число не является ни простым, ни составным\n");
             break;
         default:
             printf("Ошибка при проверке на простоту\n");
@@ -59,69 +59,96 @@ int main(int argc, char *argv[])
         break;
 
     case 's':
-
-        int size_arr_result_s = (number == 0) ? 1 : log10l(labs(number));
-        char *result_s = NULL;
-        enum Errors status_s = split_number_to_digits(number, &result_s, &size_arr_result_s);
-        if (status_s == INVALID_MEMORY)
+        char *result_s;
+        int count;
+        enum Errors err_s = hex_digit(number, &result_s, &count);
+        if (err_s == INVALID_MEMORY)
         {
-            printf("Ошибка: ошибка работы с памятью\n");
-            if (result_s != NULL)
-                free(result_s);
+            printf("Ошибка выделения памяти.\n");
             return INVALID_MEMORY;
         }
-        for (int i = 0; i < size_arr_result_s; ++i)
+        else if (err_s != OK)
         {
-            printf("%c ", result_s[i]);
+            printf("Произошла неизвестная ошибка.\n");
+            return err_s;
         }
-        printf("\n");
-        if (result_s != NULL)
-            free(result_s);
+        else
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                printf("%c ", result_s[i]);
+            }
+            printf("\n");
+        }
+        free(result_s);
 
         break;
 
     case 'e':
-        if (number > 10 || number < 0)
-        {
-            printf("Ошибка: некорректное число\n");
-            return INVALID_INPUT;
-        }
+        long long int **result_e = NULL;
+        enum Errors err_e = degree_of_table(number, &result_e);
 
-        long int **result_e = NULL;
-        if (table_of_degrees(&result_e, number) == INVALID_MEMORY)
+        if (err_e == INVALID_INPUT)
         {
-            printf("Ошибка: =ошибка работы с памятью\n");
-            // тут ничего не делаем, я там очистила
-            return INVALID_MEMORY;
-        }
-
-        for (int i = 0; i <= 10; i++)
-        {
-            for (int j = 0; j <= number; ++j)
             {
-                printf("%d^%d = %ld\n", i, j, result_e[i][j]);
+                printf("Ошибка ввода.\n");
+                return INVALID_INPUT;
+            }
+        }
+        else if (err_e == INVALID_MEMORY)
+        {
+            {
+                printf("Ошибка выделения памяти.\n");
+                return INVALID_MEMORY;
+            }
+        }
+        printf("       |");
+        for (int j = 1; j <= number; j++)
+        {
+            printf("%7d", j);
+        }
+        printf("\n-------|");
+
+        for (int j = 1; j <= number; j++)
+        {
+            printf("-------");
+        }
+        printf("\n");
+        for (int i = 1; i <= 10; i++)
+        {
+            printf("%7d|", i);
+            for (int j = 1; j <= number; j++)
+            {
+                printf("%7lld", result_e[i - 1][j - 1]);
             }
             printf("\n");
         }
-
-        for (int i = 0; i <= 10; ++i)
-            if (result_e[i] != NULL)
-                free(result_e[i]);
-        if (result_e != NULL)
-            free(result_e);
+        for (int j = 0; j < 10; j++)
+        {
+            if (result_e[j] != NULL)
+                free(result_e[j]);
+        }
+        free(result_e);
 
         break;
 
     case 'a':
-
-        long long int result_a = 0;
-        if (sum_of_numbers(number, &result_a) == INVALID_MEMORY)
+        long long int result_a;
+        enum Errors err = sum_of_numbers(number, &result_a);
+        if (err == INVALID_MEMORY)
         {
-            printf("Ошибка: произошло переполнение\n");
+            printf("Ошибка выделения памяти\n");
             return INVALID_MEMORY;
         }
-        printf("%lld\n", result_a);
+        else if (err == INVALID_INPUT)
+        {
+            printf("Ошибка: некорректный ввод числа\n");
+            return INVALID_INPUT;
+        }
+
+        printf("Сумма всех натуральных чисел от 1 до %ld: %lld\n", number, result_a);
         break;
+
 
     case 'f':
         enum Errors result = factorial_with_overflow_check(number);
@@ -139,14 +166,6 @@ int main(int argc, char *argv[])
             printf("Ошибка: слишком большое число для вычисления факториала\n");
             return result;
         }
-
-        // unsigned long long int result_f = 1;
-        // if (factorial_of_a_number(number, &result_f) == INVALID_MEMORY)
-        // {
-        //     printf("Ошибка: произошло переполнение\n");
-        //     return INVALID_MEMORY;
-        // }
-        // printf("%llu\n", result_f);
         break;
 
     default:
