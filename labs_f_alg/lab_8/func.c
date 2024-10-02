@@ -12,10 +12,23 @@ enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *cap
 {
     int simbols;
     *len = 0;
-    int leading_zeros = 1; 
+    int leading_zeros = 1;
+    int has_sign = 0;
 
-    while ((simbols = fgetc(*input)) != EOF && !isspace(simbols))
+    while ((simbols = fgetc(*input)) != EOF)
     {
+        if (isspace(simbols))
+        {
+            if (*len > 0)
+            {
+                break;
+            }
+            else
+            {
+                continue; // пропускаем ведущие пробелы
+            }
+        }
+
         if (*len >= *capacity - 1)
         {
             *capacity *= 2;
@@ -26,14 +39,18 @@ enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *cap
             }
         }
 
-        // Пропускаем ведущие нули
-        if (leading_zeros && simbols == '0')
+        // пропускаем ведущие нули, но не минус
+        if (leading_zeros && simbols == '0' && !has_sign)
         {
             continue;
         }
+        else if (simbols == '-' && *len == 0)
+        {
+            has_sign = 1; // если минус
+        }
         else
         {
-            leading_zeros = 0; 
+            leading_zeros = 0;
         }
 
         (*buffer)[(*len)++] = simbols;
@@ -51,7 +68,15 @@ enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *cap
 int determine_min_base(const char *number)
 {
     int max_digit = 0;
-    for (int i = 0; number[i]; i++)
+    int all_zeros = 1;
+    int start = 0;
+
+    if (number[0] == '-')
+    {
+        start = 1;
+    }
+
+    for (int i = start; number[i]; i++)
     {
         int digit;
         if (isdigit(number[i]))
@@ -64,14 +89,25 @@ int determine_min_base(const char *number)
         }
         else
         {
-            return -1; 
+            return -1;
+        }
+        if (digit != 0)
+        {
+            all_zeros = 0;
         }
         if (digit > max_digit)
         {
             max_digit = digit;
         }
     }
-    return max_digit + 1;
+    if (all_zeros)
+    {
+        return 2;
+    }
+    else
+    {
+        return max_digit + 1;
+    }
 }
 
 enum Errors convert_str_to_ll_int(const char *str, long long *result, int base)

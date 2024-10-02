@@ -17,6 +17,13 @@ int main(int argc, char *argv[])
         close_files(input, output);
         return ERROR_OPEN_FILE;
     }
+    // если одинаковые названия файлов при вводе
+    if (strcmp(argv[1], argv[2]) == 0)
+    {
+        printf("Ошибка: входной и выходной файлы не могут иметь одинаковое имя\n");
+        close_files(input, output);
+        return INVALID_INPUT;
+    }
 
     int capacity = MAX_LINE_LENGTH;
     char *buffer = (char *)malloc(capacity * sizeof(char));
@@ -51,7 +58,11 @@ int main(int argc, char *argv[])
             return INVALID_MEMORY;
         }
     }
-
+    // если пустой файл
+    if (len == 0)
+    {
+        fprintf(output, "Файл пустой\n");
+    }
     printf("Запись в файл сделана\n");
 
     fclose(input);
