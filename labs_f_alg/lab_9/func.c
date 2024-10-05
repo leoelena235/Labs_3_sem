@@ -90,27 +90,78 @@ void print_array_int(int *array, int size)
     printf("\n");
 }
 
-enum Errors task_2(int len, int *A, int *B, int **C)
+int int_comparator(const void *a, const void *b)//сравнение а и б
 {
-    int difference = 2000;
-    *C = malloc(sizeof(int) * len);
-    if (*C == NULL)
+    return (*(int *)a - *(int *)b);
+}
+
+int closest_value(int *arr, int size, int value)
+{ // бин поиск
+    int left = 0;
+    int right = size - 1;
+    int mid;
+
+    while (left <= right)
     {
-        printf("Ошибка выделения памяти\n");
-        return INVALID_MEMORY;
-    }
-    for (int i = 0; i < len; i++)
-    {
-        (*C)[i] = A[i] + B[i];
-        difference = abs(A[i] - B[i]);
-        for (int j = 0; j < len; j++)
+        mid = left + (right - left) / 2;
+        if (arr[mid] == value)
         {
-            if (abs(A[i] - B[j]) < difference)
-            {
-                difference = abs(A[i] - B[j]);
-                (*C)[i] = A[i] + B[j];
-            }
+            return arr[mid];
+        }
+        else if (arr[mid] < value)
+        {
+            left = mid + 1;
+        }
+        else
+        {
+            right = mid - 1;
         }
     }
-    return OK;
+
+    // проверка ближайших чисел
+    if (right < 0)
+    {
+        return arr[left];
+    }
+    else if (left >= size)
+    {
+        return arr[right];
+    }
+    else
+    {
+        if (abs(arr[left] - value) < abs(arr[right] - value))
+        {
+            return arr[left];
+        }
+        else
+        {
+            return arr[right];
+        }
+    }
 }
+
+    enum Errors task_2(int len, int *A, int *B, int **C){
+    
+        if (len <= 0)
+        {
+            return INVALID_INPUT;
+        }
+
+        *C = malloc(sizeof(int) * len);
+        if (*C == NULL)
+        {
+            printf("Ошибка выделения памяти\n");
+            return INVALID_MEMORY;
+        }
+
+        // Сортировка массива B
+        qsort(B, len, sizeof(int), int_comparator);
+
+        for (int i = 0; i < len; i++)
+        {
+            int nearest = closest_value(B, len, A[i]);
+            (*C)[i] = A[i] + nearest;
+        }
+
+        return OK;
+    }

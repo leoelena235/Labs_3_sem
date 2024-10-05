@@ -27,6 +27,8 @@ void fill_array_with_random_numbers_1(int *array, int size, int a, int b);
 enum Errors find_min_max_and_swap(int *array, int size);
 void print_array_int(int *array, int size);
 
+int int_comparator(const void *a, const void *b);
+int closest_value(int *arr, int size, int value);
 enum Errors task_2(int len, int *A, int *B, int **C);
 
 #endif
