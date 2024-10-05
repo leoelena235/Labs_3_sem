@@ -57,7 +57,7 @@ enum Errors file_func(int argc, char *argv[], FILE **input, FILE **output, char 
     if (*output == NULL)
     {
         printf("Ошибка: не получилось открыть файл %s или его не существует\n", output_filename);
-        fclose(*input);
+        fclose(input);
         return ERROR_FILE;
     }
 
@@ -117,18 +117,15 @@ void count_special_characters(FILE *input, FILE *output)
 {
     char line[1024];
 
-    // Читаем строку за строкой из входного файла
     while (fgets(line, sizeof(line), input) != NULL)
     {
         int count = 0;
         int i = 0;
 
-        // Проходим по каждому символу в строке
         while (line[i] != '\0')
         {
             char current_char = line[i];
 
-            // Проверяем, является ли символ буквой латинского алфавита, цифрой, пробелом или символом новой строки
             if (!((current_char >= 'a' && current_char <= 'z') ||
                   (current_char >= 'A' && current_char <= 'Z') ||
                   (current_char >= '0' && current_char <= '9') ||
@@ -136,15 +133,12 @@ void count_special_characters(FILE *input, FILE *output)
                   (current_char == '\n')))
             {
 
-                // Если символ не является буквой, цифрой, пробелом или символом новой строки, увеличиваем счетчик
-                count++;
+               count++;
             }
 
-            // Переходим к следующему символу
             i++;
         }
 
-        // Записываем результат в выходной файл
         fprintf(output, "%d\n", count);
     }
 }

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         int *B = malloc(sizeof(int) * len);
         if (A == NULL || B == NULL)
         {
-            printf("Ошибка выжедения памяти\n");
+            printf("Ошибка выдедения памяти\n");
             free(A);
             free(B);
             return INVALID_MEMORY;
