@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         {
             if (convert_str_to_double(argv[3 + i], &coefficients[i]) != OK)
             {
-                printf("Ошибка: некорректный ввод коэфициентов%d\n", i + 1);
+                printf("Ошибка: некорректный ввод коэфициента %d\n", i + 1);
                 return INVALID_INPUT;
             }
         }

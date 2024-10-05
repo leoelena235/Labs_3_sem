@@ -39,22 +39,43 @@ enum Errors convert_str_to_double(const char *str, double *result)
 
 void solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2)
 {
-    double discriminant = b * b - 4 * a * c;
-
-    if (fabs(discriminant) < epsilon)
+    if (fabs(a) < epsilon && fabs(b) < epsilon && fabs(c) < epsilon) //обработка бесконечного числа реш-ий
     {
-        *x1 = -b / (2 * a);
-        *x2 = *x1;
+        *x1 = INFINITY; 
+        *x2 = INFINITY;
     }
-    else if (discriminant > 0)
+    else if (fabs(a) < epsilon) // проверка на линейное уравнение
     {
-        *x1 = (-b + sqrt(discriminant)) / (2 * a);
-        *x2 = (-b - sqrt(discriminant)) / (2 * a);
+        if (fabs(b) < epsilon) // b == 0
+        {
+            *x1 = NAN;
+            *x2 = NAN;
+        }
+        else
+        {
+            *x1 = -c / b;
+            *x2 = *x1;
+        }
     }
     else
     {
-        *x1 = NAN;
-        *x2 = NAN;
+        double discriminant = b * b - 4 * a * c;
+
+        if (fabs(discriminant) < epsilon)
+        {
+            *x1 = -b / (2 * a);
+            *x2 = *x1;
+        }
+        else if (discriminant > 0)
+        {
+            *x1 = (-b + sqrt(discriminant)) / (2 * a);
+            *x2 = (-b - sqrt(discriminant)) / (2 * a);
+        }
+        else
+        {
+            *x1 = NAN;
+            *x2 = NAN;
+        }
     }
 }
 
@@ -63,7 +84,11 @@ void print_solutions(double epsilon, double coefficients[3])
     double x1, x2;
     solve_quadratic_equation(coefficients[0], coefficients[1], coefficients[2], epsilon, &x1, &x2);
 
-    if (isnan(x1))
+    if (isinf(x1))
+    {
+        printf("Уравнение %.2fx^2 + %.2fx + %.2f = 0 имеет бесконечное число решений\n", coefficients[0], coefficients[1], coefficients[2]);
+    }
+    else if (isnan(x1))
     {
         printf("Уравнение %.2fx^2 + %.2fx + %.2f = 0 не имеет действительных корней\n", coefficients[0], coefficients[1], coefficients[2]);
     }
@@ -72,6 +97,7 @@ void print_solutions(double epsilon, double coefficients[3])
         printf("Уравнение %.2fx^2 + %.2fx + %.2f = 0 имеет корни: x1 = %.6f, x2 = %.6f\n", coefficients[0], coefficients[1], coefficients[2], x1, x2);
     }
 }
+
 
 enum Errors generate_permutations(double coefficients[3], double epsilon)
 {
@@ -112,7 +138,7 @@ enum Errors input_num_convert_err(const char *str, long long int *number)
     }
 
     char *endptr;
-    long int result = strtoll(str, &endptr, 10);
+    long long int result = strtoll(str, &endptr, 10);
 
     if (*endptr != '\0' || (str == endptr))
     {
