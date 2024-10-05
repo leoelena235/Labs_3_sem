@@ -39,12 +39,12 @@ enum Errors convert_str_to_double(const char *str, double *result)
 
 void solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2)
 {
-    if (fabs(a) < epsilon && fabs(b) < epsilon && fabs(c) < epsilon) //обработка бесконечного числа реш-ий
+    if (fabs(a) < epsilon && fabs(b) < epsilon && fabs(c) < epsilon) //обработка бесконечного числа реш-ий, при 0 0 0
     {
         *x1 = INFINITY; 
         *x2 = INFINITY;
     }
-    else if (fabs(a) < epsilon) // проверка на линейное уравнение
+    else if (fabs(a) < epsilon) // решение, если линейное уравнение
     {
         if (fabs(b) < epsilon) // b == 0
         {
