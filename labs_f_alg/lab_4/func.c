@@ -1,5 +1,5 @@
 #include "header.h"
-
+#include <stdio.h>
 enum Errors valid_flag(const char *str)
 {
     if (str == NULL)
@@ -24,6 +24,11 @@ void remove_arabic_numerals(FILE *input, FILE *output)
 // for i
 enum Errors count_latin_letters(FILE *input, FILE *output)
 {
+    if (input == NULL || output == NULL)
+    {
+        printf("Error opening file\n");
+        return ERROR_FILE;
+    }
     char line[1024];
     int count;
 
@@ -53,8 +58,6 @@ enum Errors count_latin_letters(FILE *input, FILE *output)
         fclose(input);
         fclose(output);
     }
-    fclose(input);
-    fclose(output);
     return OK;
 }
 // for s
