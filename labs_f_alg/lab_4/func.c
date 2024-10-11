@@ -1,67 +1,12 @@
 #include "header.h"
 
-enum Errors file_func(int argc, char *argv[], FILE **input, FILE **output, char *output_filename)
+enum Errors valid_flag(const char *str)
 {
-    if (argc < 3 || argc > 4)
-    {
-        printf("Ошибка: некорректный ввод\n");
+    if (str == NULL)
         return INVALID_INPUT;
-    }
-
-    if (!((argv[1][0] == '-' || argv[1][0] == '/') && (argv[1][2] == '\0' || argv[1][3] == '\0')))
-    {
-        printf("Ошибка: некорректный ввод флага\n");
-        return INVALID_INPUT;
-    }
-
-    *input = fopen(argv[2], "r");
-    if (*input == NULL)
-    {
-        printf("Ошибка: не получилось открыть файл %s\n", argv[2]);
-        return ERROR_FILE;
-    }
-
-    int first_char = fgetc(*input);
-    if (first_char == EOF)
-    {
-        printf("Ошибка: входной файл пустой\n");
-        fclose(*input);
-        return ERROR_FILE;
-    }
-    fseek(*input, 0, SEEK_SET);
-
-    if (argv[1][1] == 'n')
-    {
-        if (argc != 4)
-        {
-            printf("Ошибка: некорректный ввод\n");
-            fclose(*input);
-            return INVALID_INPUT;
-        }
-        strcpy(output_filename, argv[3]);
-    }
-    else
-    {
-        strcpy(output_filename, "out_");
-        strcat(output_filename, argv[2]);
-    }
-
-    if (strcmp(argv[2], output_filename) == 0)
-    {
-        printf("Ошибка: имена входного и выходного файлов совпадают\n");
-        fclose(*input);
-        return ERROR_FILE;
-    }
-
-    *output = fopen(output_filename, "w");
-    if (*output == NULL)
-    {
-        printf("Ошибка: не получилось открыть файл %s или его не существует\n", output_filename);
-        fclose(input);
-        return ERROR_FILE;
-    }
-
-    return OK;
+    if ((str[0] == '-' || str[0] == '/') && (str[2] == '\0' || (str[3] == '\0' && str[1] == 'n')))
+        return OK;
+    return INVALID_INPUT;
 }
 
 // for d
@@ -133,7 +78,7 @@ void count_special_characters(FILE *input, FILE *output)
                   (current_char == '\n')))
             {
 
-               count++;
+                count++;
             }
 
             i++;

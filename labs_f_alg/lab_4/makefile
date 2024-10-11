@@ -1,18 +1,14 @@
-CC = gcc
-STD_FLAGS = -Wall -Werror -Wextra -std=c11
+CC = x86_64-w64-mingw32-gcc
+CFLAGS = -Wall -Werror -Wextra -std=c11
 
-all: func.o main.o
-	$(CC) $(STD_FLAGS) $^ -o task_4.exe
-
-func.o: func.c
-	$(CC) $(STD_FLAGS) -c $<
+all: main.o func.o
+	$(CC) $(CFLAGS) main.o func.o -o task_4.exe
 
 main.o: main.c
-	$(CC) $(STD_FLAGS) -c $<
+	$(CC) $(CFLAGS) -c main.c
+
+func.o: func.c
+	$(CC) $(CFLAGS) -c func.c
 
 clean:
-	rm -f *.out *.o
-
-rebuild: clean all
-run: task_4
-	./task_4
+	rm -f *.o task_4.exe
