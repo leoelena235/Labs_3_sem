@@ -39,7 +39,7 @@ enum Errors count_latin_letters(FILE *input, FILE *output)
         }
         if (fprintf(output, "%d\n", count) < 0)
         {
-            printf("Ошибка: не удалось записать в файл.\n");
+            printf("Error writing to the file\n");
             fclose(input);
             fclose(output);
             return ERROR_FILE;
@@ -48,7 +48,7 @@ enum Errors count_latin_letters(FILE *input, FILE *output)
 
     if (!feof(input))
     {
-        printf("Ошибка: чтение из файла не удалось.\n");
+        printf("Error: Reading from the file failed\n");
         return ERROR_FILE;
         fclose(input);
         fclose(output);

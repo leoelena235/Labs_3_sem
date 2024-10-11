@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     fseek(input, 0, SEEK_SET);
 
     FILE *output = NULL;
-    char *output_filename = NULL;//
+    char *output_filename = NULL;
 
     if (argv[1][1] == 'n')
     {
@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
            if(input != NULL) fclose(input);
             return INVALID_INPUT;
         }
+        //треш
         // Находим последний символ '\' в пути к файлу
         char *last_backslash = strrchr(argv[2], '\\');
         if (last_backslash == NULL)
@@ -101,22 +102,6 @@ int main(int argc, char *argv[])
             return ERROR_FILE;
         }
     }
-    // if (strcmp(argv[2], output_filename) == 0)
-    // {
-    //     printf("Error: input_file has name, like out_file\n");
-    //     free(output_filename);
-    //     fclose(input);
-    //     fclose(output);
-    //     return ERROR_FILE;
-    // }
-
-    // output = fopen(output_filename, "w");
-    // if (output == NULL)
-    // {
-    //     printf("Ошибка: не получилось открыть файл %s или его не существует\n", output_filename);
-    //     fclose(input);
-    //     return ERROR_FILE;
-    // }
 
     switch (argv[1][strlen(argv[1]) - 1])
     {
@@ -134,19 +119,19 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("Количество латинских букв в каждой строке записано в выходной файл\n");
+            printf("The number of Latin letters in each line is written to the output file\n");
             break;
         }
     case 's':
         count_special_characters(input, output);
-        printf("Количество символов, отличных от букв латинского алфавита, арабских цифр и пробела, записано в выходной файл\n");
+        printf("The number of characters other than the letters of the Latin alphabet, Arabic numerals and spaces is written to the output file\n");
         break;
     case 'a':
         change_simb(input, output);
-        printf("Символы, отличные от символов цифр, заменены на их ASCII код в шестнадцатеричной системе счисления\n");
+        printf("Characters other than numeric characters have been replaced with their ASCII code in hexadecimal notation\n");
         break;
     default:
-        printf("Ошибка: неизвестный флаг\n");
+        printf("Error: unknown flag\n");
         fclose(input);
         fclose(output);
         return INVALID_INPUT;
