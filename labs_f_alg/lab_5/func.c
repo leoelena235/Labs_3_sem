@@ -82,7 +82,7 @@ enum Errors func_sum_c(const double epsilon, const double x, double *res_c)
     if (res_c == NULL || fabs(x) > sqrt(DBL_MAX) || epsilon < 0)
         return INVALID_INPUT;
     *res_c = 0.0;
-    double term = 1.0;
+    double term = 1.0;// первый член ряда
     int n = 0;
 
     while (fabs(term) > epsilon)
@@ -101,7 +101,7 @@ enum Errors func_sum_d(const double epsilon, const double x, double *res_d)
     if (res_d == NULL || fabs(x) > sqrt(DBL_MAX) || epsilon < 0)
         return INVALID_INPUT;
     *res_d = 0.0;
-    double term = -1.0 * x * x / 2.0;
+    double term = -1.0 * x * x / 2.0;// первый член ряда
     int n = 0.0;
 
     while (fabs(term) > epsilon)
