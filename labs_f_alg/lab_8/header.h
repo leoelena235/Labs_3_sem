@@ -21,6 +21,5 @@ void close_files(FILE *input, FILE *output);
 enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *capacity);
 int determine_min_base(const char *number);
 enum Errors convert_str_to_ll_int(const char *str, long long *result, int base);
-int convert_to_base(char **result, long long number, int base, char *array_base);
 enum Errors main_func(FILE *input, FILE *output, char *buffer, int *len, int *capacity);
 #endif

@@ -32,11 +32,13 @@ enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *cap
         if (*len >= *capacity - 1)
         {
             *capacity *= 2;
-            *buffer = (char *)realloc(*buffer, *capacity * sizeof(char));
-            if (*buffer == NULL)
+            char *new_buffer = (char *)realloc(*buffer, *capacity * sizeof(char));
+            if (new_buffer == NULL)
             {
+                free(*buffer); // TODO eddited malloc
                 return INVALID_MEMORY;
             }
+            *buffer = new_buffer;
         }
 
         // пропускаем ведущие нули, но не минус
@@ -159,55 +161,6 @@ enum Errors convert_str_to_ll_int(const char *str, long long *result, int base)
     return OK;
 }
 
-int convert_to_base(char **result, long long number, int base, char *array_base)
-{
-    if (number == 0)
-    {
-        *result = (char *)malloc(2 * sizeof(char));
-        if (*result == NULL)
-        {
-            return INVALID_MEMORY;
-        }
-        (*result)[0] = '0';
-        (*result)[1] = '\0';
-        return OK;
-    }
-    int is_negative = 0;
-    if (number < 0)
-    {
-        is_negative = 1;
-        number = -number;
-    }
-
-    int len = 0;
-    long long temp = number;
-    while (temp > 0)
-    {
-        temp /= base;
-        len++;
-    }
-
-    *result = (char *)malloc(((len + 1) + is_negative) * sizeof(char));
-    if (*result == NULL)
-    {
-        return INVALID_MEMORY;
-    }
-
-    (*result)[len + is_negative] = '\0';
-    for (int i = len - 1; i >= 0; i--)
-    {
-        (*result)[i + is_negative] = array_base[number % base];
-        number /= base;
-    }
-
-    if (is_negative == 1)
-    {
-        (*result)[0] = '-';
-    }
-
-    return OK;
-}
-
 enum Errors main_func(FILE *input, FILE *output, char *buffer, int *len, int *capacity)
 {
     enum Errors err = read_input_from_file(&input, &buffer, len, capacity);
@@ -234,6 +187,7 @@ enum Errors main_func(FILE *input, FILE *output, char *buffer, int *len, int *ca
         fprintf(output, "Входное число: %s\n", buffer);
         fprintf(output, "Минимальное основание: %d\n", min_base);
         fprintf(output, "Число в 10 сс: %lld\n\n", decimal_value);
+
     }
 
     return OK;

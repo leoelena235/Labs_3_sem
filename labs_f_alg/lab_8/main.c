@@ -30,8 +30,7 @@ int main(int argc, char *argv[])
     if (buffer == NULL)
     {
         printf("Ошибка выделения памяти\n");
-        fclose(input);
-        fclose(output);
+        close_files(input, output);
         return INVALID_MEMORY;
     }
 
@@ -44,16 +43,14 @@ int main(int argc, char *argv[])
         if (err == INVALID_INPUT)
         {
             printf("Некорректный ввод\n");
-            fclose(input);
-            fclose(output);
+            close_files(input, output);
             free(buffer);
             return INVALID_INPUT;
         }
         else if (err == INVALID_MEMORY)
         {
             printf("Ошибка выделения памяти\n");
-            fclose(input);
-            fclose(output);
+            close_files(input, output);
             free(buffer);
             return INVALID_MEMORY;
         }
@@ -65,8 +62,7 @@ int main(int argc, char *argv[])
     }
     printf("Запись в файл сделана\n");
 
-    fclose(input);
-    fclose(output);
+    close_files(input, output);
     free(buffer);
 
     return 0;
