@@ -118,7 +118,7 @@ int closest_value(int *arr, int size, int value)
         }
     }
 
-    // проверка ближайших чисел
+    // проверка граничных чисел
     if (right < 0)
     {
         return arr[left];
