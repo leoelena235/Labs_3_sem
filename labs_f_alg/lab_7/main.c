@@ -6,7 +6,6 @@ int main(int argc, char *argv[])
 
     if (input_fl_err(argc, argv, &flag) != OK)
     {
-        printf("Ошибка: некорректный ввод");
         return INVALID_INPUT;
     }
 
@@ -30,17 +29,19 @@ int main(int argc, char *argv[])
         }
         break;
     case 'a':
-            if (argc != 4)
+        if (argc != 4)
         {
             printf("Ошибка ввода\n");
             return INVALID_INPUT;
         }
         enum Errors err = files_func_2(argv[2], argv[3]);
-        if (err!= OK){
+        if (err != OK)
+        {
             printf("Ошибка при работе с файлами\n");
             break;
         }
-        else{
+        else
+        {
             printf("Запись в файл сделана\n");
         }
         break;

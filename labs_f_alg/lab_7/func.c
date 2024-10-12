@@ -137,11 +137,30 @@ enum Errors convert_str_to_double(const char *str, double *result)
 
     return OK;
 }
-
 void convert_to_base4(char *dest, char c)
 {
     int ascii = (int)c;
-    sprintf(dest, "%04o", ascii);
+    int i = 0;
+    char base4[10];
+
+    do
+    {
+        base4[i++] = (ascii % 4) + '0';
+        ascii /= 4;
+    } while (ascii > 0);
+
+    while (i < 4)
+    {
+        base4[i++] = '0';
+    }
+
+    // переворачиваем строку
+    for (int j = 0; j < i; j++)
+    {
+        dest[j] = base4[i - j - 1];
+    }
+
+    dest[i] = '\0';
 }
 
 void convert_to_base8(char *dest, char c)
@@ -152,10 +171,15 @@ void convert_to_base8(char *dest, char c)
 
 enum Errors files_func_2(const char *input_file, const char *output_file)
 {
+    if (strcmp(input_file, output_file) == 0) // TODO добавила про одинаковое имя, надо сделать и при двух фалйах
+    {
+        printf("Ошибка: названия файлов совпадают.\n");
+        return FILE_ERROR;
+    }
     FILE *f_in = fopen(input_file, "r");
     FILE *f_out = fopen(output_file, "w");
 
-    if (f_in == NULL || f_out == NULL)
+    if (f_in == NULL || f_out == NULL) // TODO  чекнуть
     {
         printf("Ошибка открытия файлов\n");
         if (f_in != NULL)
