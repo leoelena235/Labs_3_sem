@@ -90,7 +90,7 @@ void print_array_int(int *array, int size)
     printf("\n");
 }
 
-int int_comparator(const void *a, const void *b)//сравнение а и б
+int int_comparator(const void *a, const void *b)
 {
     return (*(int *)a - *(int *)b);
 }
@@ -154,7 +154,6 @@ int closest_value(int *arr, int size, int value)
             return INVALID_MEMORY;
         }
 
-        // Сортировка массива B
         qsort(B, len, sizeof(int), int_comparator);
 
         for (int i = 0; i < len; i++)

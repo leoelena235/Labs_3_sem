@@ -91,8 +91,6 @@ int main(int argc, char *argv[])
 
         printf("Массив A: ");
         print_array_int(A, len);
-        // printf("Массив B до сорт: ");
-        // print_array_int(B, len);
 
         int *C = NULL;
         enum Errors result = task_2(len, A, B, &C);

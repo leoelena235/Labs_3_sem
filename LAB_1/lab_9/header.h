@@ -9,16 +9,17 @@
 #include <string.h>
 #include <ctype.h>
 
+#define MIN_SIZE 10
+#define MAX_SIZE 10000
+#define MIN_VALUE -1000
+#define MAX_VALUE 1000
+
 enum Errors
 {
     OK,
     INVALID_INPUT,
     INVALID_MEMORY
 };
-#define MIN_SIZE 10
-#define MAX_SIZE 10000
-#define MIN_VALUE -1000
-#define MAX_VALUE 1000
 
 enum Errors generate_random_array(int **array, int size, int min_value, int max_value);
 
