@@ -184,7 +184,6 @@ enum Errors degree_of_table(int number, long long int ***result_e)
         return INVALID_INPUT;
     }
 
-
     *result_e = (long long int **)malloc(10 * sizeof(long long int *));
     if (*result_e == NULL)
     {
@@ -225,7 +224,7 @@ enum Errors sum_of_numbers(long int number, long long int *result_a)
     return OK;
 }
 
-long int factorial(int n) // TODO все гуд, но чекунуть, что максим писал
+long int factorial(int n)
 {
     if (n == 0)
     {

@@ -12,7 +12,7 @@ enum Errors
     OK,
     INVALID_MEMORY,
     INVALID_INPUT,
-    NO_MULTIPLES, // h
+    NO_MULTIPLES, // for h
     PRIME_NOT,
     PRIME_NEGATIVE,
     PRIME_NOT_NATURAL
