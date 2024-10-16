@@ -44,7 +44,6 @@ char *read_lexeme(FILE *file)
     int i = 0;
     int c;
 
-    // пропускаем пробелы
     while ((c = fgetc(file)) != EOF && isspace(c))
     {
     }
@@ -77,7 +76,6 @@ enum Errors files_func_1(const char *input_1, const char *input_2, const char *o
     char *input_filename_2 = get_filename_from_path(input_2);
     char *output_filename = get_filename_from_path(output_file);
 
-    // Проверка на совпадение названий файлов
     if (strcmp(input_filename_1, input_filename_2) == 0 || strcmp(input_filename_1, output_filename) == 0 || strcmp(input_filename_2, output_filename) == 0)
     {
         printf("Ошибка: названия файлов совпадают.\n");
@@ -100,7 +98,6 @@ enum Errors files_func_1(const char *input_1, const char *input_2, const char *o
         return ERROR_OPEN_FILE;
     }
 
-    // Проверка на пустые входные файлы
     fseek(f_1, 0, SEEK_END);
     fseek(f_2, 0, SEEK_END);
     if (ftell(f_1) == 0 && ftell(f_2) == 0)
@@ -216,7 +213,6 @@ enum Errors files_func_2(const char *input_file, const char *output_file)
         return ERROR_OPEN_FILE;
     }
 
-    // Проверка на пустой входной файл
     fseek(f_in, 0, SEEK_END);
     if (ftell(f_in) == 0)
     {
