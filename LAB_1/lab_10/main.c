@@ -1,4 +1,4 @@
-#include "Header.h"
+#include "header.h"
 
 int main()
 {
@@ -16,13 +16,12 @@ int main()
 
     long long int max_number = LLONG_MIN;
     int numbers_entered = 0;
-char *stop_word = "Stop";
+    char *stop_word = "Stop";
 
     while (scanf("%100s", input_str) == 1)
     {
         if (strcmp(input_str, stop_word) == 0)
         {
-            // free(input_str);
             break;
         }
 
