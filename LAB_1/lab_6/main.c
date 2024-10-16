@@ -7,6 +7,7 @@ int main(int argc, char *argv[])
         printf("Ошибка: неверное количество аргументов.\n");
         return INVALID_INPUT;
     }
+
     double epsilon;
     enum Errors err = convert_str_to_double(argv[1], &epsilon);
     if (err != OK)
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
         printf("epsilon слишком маленькое, эпсилон = 1e-15.\n");
         epsilon = 1e-15;
     }
+    
     double a = 0.0;
     double b = 1.0;
 

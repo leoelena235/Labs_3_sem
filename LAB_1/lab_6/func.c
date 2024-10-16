@@ -80,7 +80,7 @@ double integral_with_eps(double epsilon, double (*f)(double), double a, double b
     }
     if (n >= max_iterations)
     {
-        printf("достигнуто максимальное количество итераций.\n");  //ограничение 
+        printf("достигнуто максимальное количество итераций.\n");  //ограничение итераций
     }
     return result;
 }
