@@ -21,5 +21,5 @@ enum Errors func_sum_b(const double epsilon, const double x, double *res_b);
 double factorial(int n);
 enum Errors func_sum_c(const double epsilon, const double x, double *res_c);
 enum Errors func_sum_d(const double epsilon, const double x, double *res_d);
-// double double_factorial(int n);
+
 #endif
