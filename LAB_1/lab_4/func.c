@@ -1,5 +1,6 @@
 #include "header.h"
 #include <stdio.h>
+
 enum Errors valid_flag(const char *str)
 {
     if (str == NULL)
