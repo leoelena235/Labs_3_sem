@@ -1,5 +1,22 @@
 #include "header.h"
 
+// для проверки пути
+char *get_filename_from_path(const char *path)
+{
+    char *last_slash = strrchr(path, '/');
+    if (last_slash == NULL)
+    {
+        last_slash = strrchr(path, '\\');
+    }
+    if (last_slash != NULL)
+    {
+        return last_slash + 1;
+    }
+    else
+    {
+        return (char *)path;
+    }
+}
 enum Errors input_fl_err(int argc, char *argv[], int *flag)
 {
     if (argc != 5 && argc != 4)
@@ -27,7 +44,7 @@ char *read_lexeme(FILE *file)
     int i = 0;
     int c;
 
-    // Пропускаем пробельные символы
+    // пропускаем пробелы
     while ((c = fgetc(file)) != EOF && isspace(c))
     {
     }
@@ -55,8 +72,13 @@ char *read_lexeme(FILE *file)
 
 enum Errors files_func_1(const char *input_1, const char *input_2, const char *output_file)
 {
+
+    char *input_filename_1 = get_filename_from_path(input_1);
+    char *input_filename_2 = get_filename_from_path(input_2);
+    char *output_filename = get_filename_from_path(output_file);
+
     // Проверка на совпадение названий файлов
-    if (strcmp(input_1, input_2) == 0 || strcmp(input_1, output_file) == 0 || strcmp(input_2, output_file) == 0)
+    if (strcmp(input_filename_1, input_filename_2) == 0 || strcmp(input_filename_1, output_filename) == 0 || strcmp(input_filename_2, output_filename) == 0)
     {
         printf("Ошибка: названия файлов совпадают.\n");
         return FILE_ERROR;
@@ -171,15 +193,20 @@ void convert_to_base8(char *dest, char c)
 
 enum Errors files_func_2(const char *input_file, const char *output_file)
 {
-    if (strcmp(input_file, output_file) == 0) // TODO добавила про одинаковое имя, надо сделать и при двух фалйах
+    char *input_filename = get_filename_from_path(input_file);
+    char *output_filename = get_filename_from_path(output_file);
+
+    if (strcmp(input_filename, output_filename) == 0)
     {
         printf("Ошибка: названия файлов совпадают.\n");
         return FILE_ERROR;
     }
+
+
     FILE *f_in = fopen(input_file, "r");
     FILE *f_out = fopen(output_file, "w");
 
-    if (f_in == NULL || f_out == NULL) // TODO  чекнуть
+    if (f_in == NULL || f_out == NULL) 
     {
         printf("Ошибка открытия файлов\n");
         if (f_in != NULL)

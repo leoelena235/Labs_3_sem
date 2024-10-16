@@ -17,7 +17,7 @@ enum Errors
     FILE_ERROR,
     ERROR_OPEN_FILE
 };
-
+char *get_filename_from_path(const char *path);
 enum Errors input_fl_err(int argc, char *argv[], int *flag);
 enum Errors files_func_1(const char *input_1, const char *input_2, const char *output_file);
 void read_and_print_lexeme(FILE *file, FILE *f_out, char **lexeme);
