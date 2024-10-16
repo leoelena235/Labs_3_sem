@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
         close_files(input, output);
         return ERROR_OPEN_FILE;
     }
-    // если одинаковые названия файлов при вводе
+
     if (strcmp(argv[1], argv[2]) == 0)
     {
         printf("Ошибка: входной и выходной файлы не могут иметь одинаковое имя\n");

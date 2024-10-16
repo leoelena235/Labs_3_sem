@@ -35,7 +35,7 @@ enum Errors read_input_from_file(FILE **input, char **buffer, int *len, int *cap
             char *new_buffer = (char *)realloc(*buffer, *capacity * sizeof(char));
             if (new_buffer == NULL)
             {
-                free(*buffer); // TODO eddited malloc
+                free(*buffer); 
                 return INVALID_MEMORY;
             }
             *buffer = new_buffer;
