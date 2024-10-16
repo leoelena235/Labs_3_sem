@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "header.h"
+
 enum Errors input_fl_err(int argc, char *argv[], int *flag)
 {
     if (argc < 2)
