@@ -22,25 +22,23 @@ enum Errors
 double limit_e(double epsilon);
 double row_e(double epsilon);
 double equation_e(double epsilon);
+
 double limit_pi(double epsilon);
 double row_pi(double epsilon);
-double equation_pi(double epsilon); // чекнуть
+double equation_pi(double epsilon);
+ 
 double limit_ln(double epsilon);
 double equation_ln(double epsilon);
 double row_sqrt(double epsilon);
 double limit_y(double epsilon);
-double row_y(double epsilon); //
+double row_y(double epsilon); 
 double equation_y(double epsilon);
 double row_ln(double epsilon); 
-
 double limit_sqrt(double epsilon); 
 
 enum Errors convert_str_to_double(const char *str, double *result);
 double power_binary(double base, int exponent);
 int is_prime(int number);
 double sum(int n);
-
-
-double equation_sqrt(double epsilon); //!!!!
-
+double equation_sqrt(double epsilon); 
 #endif
