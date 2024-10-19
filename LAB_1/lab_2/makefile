@@ -2,7 +2,7 @@ CC = gcc
 STD_FLAGS = -Wall -Werror -Wextra -std=c11
 
 all: func.o main.o
-	$(CC) $(STD_FLAGS) $^ -o task_2.exe
+	$(CC) $(STD_FLAGS) $^ -o task_2 -lm
 
 func.o: func.c
 	$(CC) $(STD_FLAGS) -c $<
