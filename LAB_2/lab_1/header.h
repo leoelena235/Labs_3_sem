@@ -9,7 +9,8 @@ enum Errors
 {
     INVALID_INPUT,
     OK,
-    INVALID_MEMORY
+    INVALID_MEMORY,
+    INVALID_ARGUMENT
 };
 
 enum Errors input_fl_err(int argc, char *argv[]);

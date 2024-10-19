@@ -153,7 +153,25 @@ enum Errors convert_str_to_int(const char *str, long long int *number, int base)
 }
 
 enum Errors concotenation_str(char **str_array, char **result_c, int count_str, unsigned int seed)
-{ // вся длина строк, которые будут объединены
+{
+    if (str_array == NULL || result_c == NULL)
+    {
+        return INVALID_ARGUMENT;
+    }
+
+    if (count_str <= 0)
+    {
+        return INVALID_ARGUMENT;
+    }
+
+    for (int i = 0; i < count_str; i++)
+    {
+        if (str_array[i] == NULL)
+        {
+            return INVALID_ARGUMENT;
+        }
+    }
+    // вся длина строк, которые будут объединены
     int total_length = 0;
     for (int i = 0; i < count_str; i++)
     {
