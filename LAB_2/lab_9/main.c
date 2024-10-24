@@ -1,40 +1,40 @@
 #include "header.h"
-
-int main(int argc, char *argv[])
+int main()
 {
-    if (argc < 3)
+    double *result = NULL;
+    int count = 0;
+    enum Errors error = check_fractions(8, &count, &result, 6, 0.125, 0.5, 0.0001, 0.25, 0.625, 0.0005);
+    if (error == INVALID_MEMORY)
     {
-        printf("Uncorrect count of values\n");
+        printf("Invalid memory: memory allocation\n");
+        return INVALID_MEMORY;
+    }
+    else if (error == INVALID_INPUT)
+    {
+        // printf("invalid base\n");
         return INVALID_INPUT;
     }
 
-    int base;
-    enum Errors status = valid_base(argv[1], &base);
-    if (status != OK)
+    if (result == NULL)
     {
-        return INVALID_INPUT;
+        printf("No numbers have finale representation\n");
     }
-    double fractions[argc - 2];
-    for (int i = 2; i < argc; i++)
+    else
     {
-        char *endptr;
-        double fraction = strtod(argv[i], &endptr);
-
-        if (*endptr != '\0' || endptr == argv[i])
+        for (int i = 0; i < count; i++)
         {
-            printf("Incorrect fraction: not a double\n");
-            return INVALID_INPUT;
+            if (result[i] != 0.0)
+            {
+                printf("Fraction %d has finale representation in this base\n", i + 1);
+            }
+            else
+            {
+                printf("Fraction %d does not have finale representation in this base\n", i + 1);
+            }
         }
 
-        fractions[i - 2] = fraction;
+        free(result);
     }
 
-    status = check_fractions(base, argc - 2, fractions[0], fractions[1], fractions[2], fractions[3], fractions[4], fractions[5], fractions[6], fractions[7], fractions[8], fractions[9]);
-
-    if (status != OK)
-    {
-        return INVALID_INPUT;
-    }
-
-    return OK;
+    return 0;
 }

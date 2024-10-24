@@ -14,10 +14,11 @@ enum Errors
     OK,
     INVALID_INPUT,
     FINALE_REPRESENTATION,
-    NO_FINALE_REPRESENTATION
+    NO_FINALE_REPRESENTATION,
+    INVALID_MEMORY
 };
-enum Errors valid_base(const char *base_str, int *base);
-enum Errors check_fractions(int base, int count, ...);
+enum Errors valid_base(int base);
+enum Errors check_fractions(int base, int *count, double **res,int arg_count, ...);
 enum Errors has_finite_representation(double fraction, int base);
 int gcd(int a, int b);
 bool is_prime(int number);

@@ -4,24 +4,13 @@
 #include <math.h>
 #include "header.h"
 
-enum Errors valid_base(const char *base_str, int *base)
+enum Errors validate_base(int base)
 {
-    char *endptr;
-    long base_long = strtol(base_str, &endptr, 10);
-
-    if (*endptr != '\0' || endptr == base_str)
-    {
-        printf("Incorrect base: not an integer\n");
-        return INVALID_INPUT;
-    }
-
-    if (base_long < 2 || base_long > 36)
+    if (base < 2 || base > 36)
     {
         printf("Incorrect base: out of range\n");
         return INVALID_INPUT;
     }
-
-    *base = (int)base_long;
     return OK;
 }
 
@@ -106,34 +95,53 @@ enum Errors finale_representation(double fraction, int base)
 
     return FINALE_REPRESENTATION;
 }
-enum Errors check_fractions(int base, int count, ...)
+enum Errors check_fractions(int base, int *count, double **result, int arg_count, ...)
 {
     va_list args;
-    va_start(args, count);
+    va_start(args, arg_count);
 
-    for (int i = 0; i < count; i++)
+    if (arg_count <= 0)
+    {
+        printf("Invalid number of arguments\n");
+        va_end(args);
+        return INVALID_INPUT;
+    }
+    enum Errors base_error = validate_base(base);
+    if (base_error != OK)
+    {
+        va_end(args);
+        return INVALID_INPUT;
+    }
+    *count = arg_count;
+
+    *result = (double *)malloc(sizeof(double) * arg_count);
+    if (*result == NULL)
+    {
+        va_end(args);
+        return INVALID_MEMORY;
+    }
+
+    for (int i = 0; i < arg_count; i++)
     {
         double fraction = va_arg(args, double);
 
-        if (fraction <= 0.0 || fraction >= 1.0) // TODO дабл проверка убрать
+        if (fraction <= 0.0 || fraction >= 1.0)
         {
             printf("Fraction %d is out of range (0; 1)\n", i + 1);
             va_end(args);
+            free(*result);
+            *result = NULL;
             return INVALID_INPUT;
         }
 
-        enum Errors result = finale_representation(fraction, base);
-        if (result == FINALE_REPRESENTATION)
+        enum Errors representation_result = finale_representation(fraction, base);
+        if (representation_result == FINALE_REPRESENTATION)
         {
-            printf("Fraction %d has finale representation in base %d\n", i + 1, base);
-        }
-        else if (result == NO_FINALE_REPRESENTATION)
-        {
-            printf("Fraction %d does not have finale representation in base %d\n", i + 1, base);
+            (*result)[i] = fraction;
         }
         else
         {
-            printf("Invalid input for fraction %d\n", i + 1);
+            (*result)[i] = 0.0;
         }
     }
 
