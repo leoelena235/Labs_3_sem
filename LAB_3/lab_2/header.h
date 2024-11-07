@@ -23,7 +23,7 @@ enum Errors vector_init(int n, vector *vect, ...);
 void print_vect(vector *vect);
 enum Errors vector_kill(vector *vect);
 enum Errors norm_inf(vector *vect, double *norm);
-enum Errors norm_m();
+enum Errors norm_m(vector *vect, double *norm);
 enum Errors norm_p(vector *vect, double *norm, unsigned int p);
 enum Errors main_func(unsigned int p,
                       enum Errors (*norm_inf)(vector *, double *),

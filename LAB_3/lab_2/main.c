@@ -59,14 +59,17 @@ int main()
         return error;
     }
     printf("Result:\n");
+    printf("norm inf:\n");
     for (int i = 0; i < size_1; i++)
     {
         print_vect(&result_1[i]);
     }
+    printf("norm p:\n");
     for (int i = 0; i < size_2; i++)
     {
         print_vect(&result_2[i]);
     }
+    printf("norm A:\n");
     for (int i = 0; i < size_3; i++)
     {
         print_vect(&result_3[i]);
@@ -74,11 +77,8 @@ int main()
     vector_kill(&vect_1);
     vector_kill(&vect_2);
     vector_kill(&vect_3);
-    vector_kill(result_1);
-    vector_kill(result_2);
-    vector_kill(result_3);
 
-    free(result_1); 
-    free(result_2); 
-    free(result_3); 
+    free(result_1);
+    free(result_2);
+    free(result_3);
 }

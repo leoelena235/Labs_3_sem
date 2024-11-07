@@ -58,7 +58,7 @@ enum Errors norm_inf(vector *vect, double *norm)
         return INVALID_INPUT;
     }
     double max_val = 0.0;
-    for ( int i = 0; i < vect->n; i++)
+    for (int i = 0; i < vect->n; i++)
     {
         double current_element = vect->coordinats[i];
 
@@ -87,7 +87,7 @@ enum Errors norm_p(vector *vect, double *norm, unsigned int p)
         return INVALID_INPUT;
     }
     double sum = 0.0;
-    for ( int i = 0; i < vect->n; i++)
+    for (int i = 0; i < vect->n; i++)
     {
         double abs_val = fabs(vect->coordinats[i]);
         double pow_val = pow(abs_val, p);
@@ -200,21 +200,14 @@ enum Errors main_func(unsigned int p,
                       enum Errors (*norm_p)(vector *, double *, unsigned int),
                       enum Errors (*norm_m)(vector *, double *),
                       int *size_1, int *size_2, int *size_3,
-                      vector** result_1, vector** result_2, vector** result_3, ...)
+                      vector **result_1, vector **result_2, vector **result_3, ...)
 { // valid dont forget
     if (size_1 == NULL || size_2 == NULL || size_3 == NULL ||
         result_1 == NULL || result_2 == NULL || result_3 == NULL)
     {
         return INVALID_INPUT;
     }
-    // malloc for results
-    // тут надо выделить память для результата, не забывая
-    // про освобождение памяти
-    // size_1 = 0;
-    // size_2 = 0;
-    // size_3 = 0;
 
-    // Выделение памяти для результатов
     int quantity = 3; // Количество переданных векторов
     (*result_1) = (vector *)malloc(sizeof(vector) * quantity);
     if (*result_1 == NULL)
