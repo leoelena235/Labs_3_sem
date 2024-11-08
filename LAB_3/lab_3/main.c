@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
 
     switch (argv[2][1])
     {
-    case 'a': // по возрастанию
+    case 'a': // по не убыванию
         qsort(input_array, size, sizeof(Employee), compare_a);
         break;
-    case 'd': // по убыванию
+    case 'd': // по не возрастанию
         qsort(input_array, size, sizeof(Employee), compare_d);
         break;
     default:

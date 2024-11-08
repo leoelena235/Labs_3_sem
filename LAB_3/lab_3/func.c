@@ -73,5 +73,6 @@ enum Errors read_from_file(FILE *input, Employee **data, int *size, int *capacit
         (*data)[(*size)++] = temp;
         count++;
     }
+    
     return (count > 0) ? OK : INVALID_INPUT;
 }
