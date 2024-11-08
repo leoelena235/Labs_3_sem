@@ -5,58 +5,68 @@ int main(int argc, char *argv[])
     enum Errors error = input_valid(argc, argv);
     if (error != OK)
     {
-        printf("Invalid input: uncorrect count of aguments or uncorrect arguments\n");
+        printf("Invalid input: incorrect number of arguments or invalid arguments\n");
         return INVALID_INPUT;
     }
 
-    FILE *in = fopen(argv[2], "r");
+    FILE *in = fopen(argv[1], "r");
     if (!in)
     {
-        fclose(in);
-        printf("Error opening file");
+        printf("Error opening input file\n");
         return ERROR_OPEN_FILE;
     }
+
     FILE *out = fopen(argv[3], "w");
     if (!out)
     {
-        flose(out);
-        printf("Error opening file");
+        fclose(in);
+        printf("Error opening output file\n");
         return ERROR_OPEN_FILE;
     }
-    // x3
-    Employee *input_array = NULL;
-    int size = 0, capacity_array = 2;
 
-    switch (argv[1][2])
+    Employee *input_array = (Employee*)malloc(2 * sizeof(Employee));
+    if (!input_array)
     {
-    case 'a':
-        if (read_from_file(in, &input_array, &size, &capacity_array) != OK)
-        {
-
-            printf("error work");
-            fclode(in);
-            fclose(out);
-            free(input_array);
-            return INVALID_INPUT;
-        }
-       if else
-        {    qsort(data, size_data, sizeof(Employee), compare_a);
-            for (int i = 0; i < capacity_array; i++)
-            {
-                fprintf(output, "%u %s %s %lf\n", data[i].id, data[i].name, data[i].surname, data[i].salary);
-            }
-        }
-        break;
-    case 'd':
-        break;
-
-    default:
-        printf("Error \n");
-        break;
+        fclose(in);
+        fclose(out);
+        printf("Memory allocation error\n");
+        return INVALID_MEMORY;
     }
-}
-fclose(in);
-fclose(out);
 
-return 0;
+    int size = 0, capacity = 2;
+    if (read_from_file(in, &input_array, &size, &capacity) != OK)
+    {
+        printf("Error reading data\n");
+        free(input_array);
+        fclose(in);
+        fclose(out);
+        return INVALID_MEMORY;
+    }
+
+    fclose(in);
+
+    switch (argv[2][1])
+    {
+    case 'a': // по возрастанию
+        qsort(input_array, size, sizeof(Employee), compare_a);
+        break;
+    case 'd': // по убыванию
+        qsort(input_array, size, sizeof(Employee), compare_d);
+        break;
+    default:
+        printf("Invalid sorting flag\n");
+        free(input_array);
+        fclose(out);
+        return INVALID_INPUT;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        fprintf(out, "%d %s %s %.2f\n", input_array[i].id, input_array[i].name, input_array[i].surname, input_array[i].salary);
+    }
+
+    free(input_array);
+    fclose(out);
+
+    return OK;
 }
