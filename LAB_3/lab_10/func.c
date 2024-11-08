@@ -13,12 +13,6 @@ enum Errors validate_input(int argc, char **argv)
     return OK;
 }
 
-// void init_tree(Node *root)
-// {
-//     root->brother = NULL;
-//     root->prev = NULL;
-//     root->son = NULL;
-// }
 
 enum Errors build_tree(FILE *input, FILE *output)
 {
