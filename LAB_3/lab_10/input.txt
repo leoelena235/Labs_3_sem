@@ -1,1 +1,1 @@
-A(B(C(D, E), F), G(H, I), J)
+A (B (E (G, T, R (W, Z)), F (L, M)), C)

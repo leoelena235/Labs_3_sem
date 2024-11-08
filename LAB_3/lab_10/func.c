@@ -38,7 +38,7 @@ enum Errors build_tree(FILE *input, FILE *output)
         }
 
         print_tree(output, root, 0);
-        if (fprintf(output, "\n") < 0)//check
+        if (fprintf(output, "\n") < 0)
         {
             delete_tree(root);
             return INVALID_INPUT;
@@ -49,7 +49,7 @@ enum Errors build_tree(FILE *input, FILE *output)
     return OK;
 }
 
-Node *parse_expression(char *expr)
+Node *parse_expression(char const *expr)
 {
     Node *root = NULL;
     Node *current = NULL;
