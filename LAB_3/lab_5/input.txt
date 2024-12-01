@@ -1,5 +1,1 @@
-1 John Doe CS-101 5 4 3 4 5
-2 Alice Brown CS-102 3 4 4 4 5
-3 Bob Smith CS-101 4 3 4 4 4
-4 Charlie Johnson CS-103 5 5 5 5 5
-Ы
+1 John Doe M-101 5 4 3 4 5

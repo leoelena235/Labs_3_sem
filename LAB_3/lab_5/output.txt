@@ -1,12 +1,2 @@
 Sorted students:
-2 Alice Brown, Group: CS-102, Average Score: 4.00
-3 Bob Smith, Group: CS-101, Average Score: 3.80
-4 Charlie Johnson, Group: CS-103, Average Score: 5.00
-1 John Doe, Group: CS-101, Average Score: 4.20
-Sorted students:
-3 Bob Smith, Group: CS-101, Average Score: 3.80
-1 John Doe, Group: CS-101, Average Score: 4.20
-2 Alice Brown, Group: CS-102, Average Score: 4.00
-4 Charlie Johnson, Group: CS-103, Average Score: 5.00
-Students with average score above 4.25:
-Charlie Johnson
+1 John Doe, Group: M-101, Average Score: 4.20
