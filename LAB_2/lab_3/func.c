@@ -1,129 +1,158 @@
 #include "header.h"
-// для вычисления хеша подстроки
-long long int calculate_hash(const char *str, int len, int begin)
+finalyAns *Task(char *str, ...)
 {
-    long long int hash = 0;
-    long long int power = 1;
-
-    for (int i = 0; i < len; i++)
-    {
-        hash = (hash + str[(begin + i) % len] * power) % HASH_SPREAD;
-        power = (power * BASE) % HASH_SPREAD;
-    }
-
-    return hash;
-}
-
-// для поиска вхождений подстроки в файле
-enum Errors search_substring_in_file(int **result, int *cur_elem, const char *filename, long long int str_hash, int substring_len)
-{
-    if (filename == NULL)
-    {
-        return INVALID_INPUT;
-    }
-    if (result == NULL)
-    {
-        return INVALID_INPUT;
-    }
-    if (cur_elem == NULL)
-    {
-        return INVALID_INPUT;
-    }
-
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
-        return ERROR_OPEN_FILE;
-
-    char buffer[substring_len];
-    int buffer_index = 0, c;
-    long long int current_hash;
-    int line = 1, simbol = 0, is_start = 0;
-
-    while ((c = fgetc(file)) != EOF)
-    {
-        if (is_start + 1 < substring_len)
-        {
-            is_start++;
-        }
-        else if (buffer[buffer_index] == '\n')
-        {
-            line++;
-            simbol = 1;
-        }
-        else
-        {
-            simbol++;
-        }
-
-        buffer[buffer_index] = c;
-        buffer_index = (buffer_index + 1) % substring_len;
-        current_hash = calculate_hash(buffer, substring_len, buffer_index);
-        if (current_hash == str_hash)
-        {
-            (*result)[*cur_elem] = line;
-            (*cur_elem)++;
-            (*result)[*cur_elem] = simbol;
-            (*cur_elem)++;
-        }
-    }
-
-    fclose(file);
-
-    return OK;
-}
-
-// main func для поиска подстроки в файлах
-enum Errors find_substring(int **result, int *count_val, const char *substr, const int count, ...)
-{
-    if (count <= 0)
-    {
-        printf("Uncorrect count\n");
-        return INVALID_INPUT;
-    }
-    if (result == NULL)
-    {
-        return INVALID_INPUT;
-    }
-    if (substr == NULL)
-    {
-        return INVALID_INPUT;
-    }
-
-    long long int substr_hash = calculate_hash(substr, strlen(substr), 0);
-
+    int len = SizeOfStr(str);
     va_list args;
-    va_start(args, count);
-
-    int match_count = 0;
-
-    for (int i = 0; i < count; i++)
+    va_start(args, str);
+    int prefix_mass[len];
+    char *filename = "c";
+    calculate_prefix(str, prefix_mass, len);
+    finalyAns *answer = NULL;
+    finalyAns *tmp = NULL;
+    values *ans = NULL;
+    // счетчик вхождений в одном файле
+    int count_ans = 0;
+    int count_files = 0;
+    while (1)
     {
-        const char *filename = va_arg(args, const char *);
-        enum Errors status = search_substring_in_file(result, &match_count, filename, substr_hash, strlen(substr));
-        if (status != OK)
-            return INVALID_INPUT;
-    }
-
-    (*result) = (int *)malloc(match_count * 2 * sizeof(int));
-    if (*result == NULL)
-        return INVALID_MEMORY;
-    *count_val = 0;
-
-    va_end(args);
-    va_start(args, count);
-
-    for (int i = 0; i < count; i++)
-    {
-        const char *filename = va_arg(args, const char *);
-        enum Errors status = search_substring_in_file(result, count_val, filename, substr_hash, strlen(substr));
-        if (status != OK)
+        count_ans = 0;
+        ans = NULL;
+        filename = va_arg(args, char *);
+        if (filename == NULL)
         {
-            free(*result);
-            return INVALID_INPUT;
+            break;
+        }
+        count_files++; //(ниже)ищем подстроку в файле
+        count_ans = StrInFile(str, filename, prefix_mass, len, &ans);
+        tmp = (finalyAns *)realloc(answer, count_files * sizeof(finalyAns));
+        if (tmp == NULL)
+        {
+            return NULL;
+        }
+        answer = tmp;
+        answer[count_files - 1].filename = filename; // сохр имя файла
+        if (count_ans == OPEN_PROBLEM && ans == NULL)
+        {
+            answer[count_files - 1].status = OPEN_PROBLEM;
+            continue;
+        }
+        else if (count_ans == INVALID_MEMORY && ans == NULL)
+        {
+            answer[count_files - 1].status = INVALID_MEMORY;
+            continue;
+        }
+        answer[count_files - 1].status = OK;
+        answer[count_files - 1].ans_for_file = ans;
+        answer[count_files - 1].ans_for_file_len = count_ans;
+    }
+    if (count_files > 0)
+    {
+        answer[0].count_files = count_files;
+    }
+    va_end(args);
+    return answer;
+}
+
+void calculate_prefix(char *str, int prefix_mass[], int len)
+{
+    prefix_mass[0] = 0; // нулевой симв не имеет префикса
+    int prefix_len = 0;
+    for (int i = 1; i < len; i++)
+    {
+        // если последний символ суффикса не совпадает с последним символом префикса,
+        // то пытаемся найти совпадение с меньшей !возможной! длиной префикса
+        if (prefix_len > 0 && str[i] != str[prefix_len])
+        {
+            prefix_len = prefix_mass[prefix_len - 1];
+        }
+        // при совпадении увеличиваем длину совпадающего префикса
+        if (str[prefix_len] == str[i])
+        {
+            prefix_len++;
+        }
+        prefix_mass[i] = prefix_len;
+    }
+}
+
+// кмп
+int StrInFile(char *str, char *file, int prefix_mass[], int len, values **start)
+{
+    FILE *in;
+    if ((in = fopen(file, "r")) == NULL)
+    {
+        return OPEN_PROBLEM;
+    }
+    char current;
+    // кол-во \n в подстроке
+    int count_n = checkStr(str);
+    int count_sovpad = 0;
+    // позиция в файле
+    int count = 0;
+    int count_str_number = 1;
+    int count_ans = 0;
+    // начало вхождения
+    int start_in = 0;
+    values *ans;
+    while ((current = fgetc(in)) != EOF)
+    {
+        count++;
+        // если не совпадает, то двигаем подстроку
+        while (count_sovpad > 0 && current != str[count_sovpad])
+        {
+            count_sovpad = prefix_mass[count_sovpad - 1];
+        }
+        // если совпдает, то увеличиваем совпадение строки и подстроки
+        if (current == '\n')
+        {
+            count = 0;
+            count_str_number++;
+        }
+        if (count_sovpad == 0 && current == str[count_sovpad])
+        {
+            start_in = count;
+        }
+        if (current == str[count_sovpad])
+        {
+            count_sovpad++;
+        }
+        // если нашли полное совпадение, то
+        if (count_sovpad == len)
+        {
+            count_ans++;
+            ans = (values *)realloc(*start, sizeof(values) * count_ans);
+            if (ans == NULL)
+            {
+                return INVALID_MEMORY;
+            }
+            *start = ans;
+            ans[count_ans - 1].str_number = count_str_number - count_n;
+            ans[count_ans - 1].symbol_number = start_in;
+            count_sovpad = prefix_mass[count_sovpad - 1];
         }
     }
+    fclose(in);
+    return count_ans;
+}
 
-    va_end(args);
-
-    return OK;
+int checkStr(char *s)
+{
+    int ans = 0;
+    for (int i = 0; s[i] != 0; i++)
+    {
+        if (s[i] == '\n')
+        {
+            ans++;
+        }
+    }
+    return ans;
+}
+// просто длина стр
+int SizeOfStr(char *s)
+{
+    int ans = 0;
+    for (int i = 0; s[i] != 0; i++)
+    {
+        ans = i + 1;
+    }
+    return ans;
 }

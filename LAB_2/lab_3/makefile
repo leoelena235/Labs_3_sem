@@ -1,8 +1,10 @@
 CC = gcc
 STD_FLAGS = -Wall -Werror -Wextra -std=c11
 
+OUTPUT = task_3
+
 all: func.o main.o
-	$(CC) $(STD_FLAGS) $^ -lm -o task_3.exe
+	$(CC) $(STD_FLAGS) $^ -lm -o $(OUTPUT)
 
 func.o: func.c
 	$(CC) $(STD_FLAGS) -c $<
@@ -11,9 +13,9 @@ main.o: main.c
 	$(CC) $(STD_FLAGS) -c $<
 
 clean:
-	rm -f *.out *.o
+	rm -f *.o $(OUTPUT)
 
 rebuild: clean all
 
-run: task_3.out
-	./task_3
+run: $(OUTPUT)
+	./$(OUTPUT)
