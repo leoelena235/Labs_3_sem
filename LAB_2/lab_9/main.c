@@ -23,7 +23,7 @@ int main()
     {
         for (int i = 0; i < count; i++)
         {
-            if (result[i] != 0.0)
+            if (fabs(result[i]) > EPSILON)
             {
                 printf("Fraction %d has finale representation in this base\n", i + 1);
             }
