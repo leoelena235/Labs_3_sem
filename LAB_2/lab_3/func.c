@@ -4,7 +4,7 @@ finalyAns *Task(char *str, ...)
     int len = SizeOfStr(str);
     va_list args;
     va_start(args, str);
-    int prefix_mass[len];
+    int prefix_mass[len];//TODO:VLA
     char *filename = "c";
     calculate_prefix(str, prefix_mass, len);
     finalyAns *answer = NULL;
@@ -22,7 +22,7 @@ finalyAns *Task(char *str, ...)
         {
             break;
         }
-        count_files++; //(ниже)ищем подстроку в файле
+        count_files++;
         count_ans = StrInFile(str, filename, prefix_mass, len, &ans);
         tmp = (finalyAns *)realloc(answer, count_files * sizeof(finalyAns));
         if (tmp == NULL)
