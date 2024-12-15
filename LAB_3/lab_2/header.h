@@ -1,36 +1,42 @@
-#ifndef HEADER_H
-#define HEADER_H
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
-#define Eps 10e-6
+
+typedef struct vector
+{
+    int size;
+    double *mass; // массив вещ чис-коорд вект
+} vector;
+
 enum Errors
 {
     OK,
-    INVALID_INPUT,
-    INVALID_MEMORY
+    INVALID_MEMORY,
+    INVALID_INPUT
 };
 
-typedef struct
+typedef struct finaly_ans
 {
-    double *coordinats;
-    int n;
-} vector;
+    int status;
+    vector *ans1; // массив структ вектор,хранит рез нормы 1
+    vector *ans2;
+    vector *ans3;
+    int size1;
+    int size2;
+    int size3;
+    int anses1; // кол-во векторов, соотв-х  макс знач по кажд норме
+    int anses2;
+    int anses3;
+} finaly_ans;
 
-enum Errors vector_init(int n, vector *vect, ...);
-void print_vect(vector *vect);
-enum Errors vector_kill(vector *vect);
-enum Errors norm_inf(vector *vect, double *norm);
-enum Errors norm_m(vector *vect, double *norm);
-enum Errors norm_p(vector *vect, double *norm, unsigned int p);
-enum Errors main_func(unsigned int p,
-                      enum Errors (*norm_inf)(vector *, double *),
-                      enum Errors (*norm_p)(vector *, double *, unsigned int),
-                      enum Errors (*norm_m)(vector *, double *),
-                      int *size_1, int *size_2, int *size_3,
-                      vector **result_1, vector **result_2, vector **result_3,
-                      ...);
-
-#endif
+typedef double (*universal)(vector, void *);//для доп арг
+// Определяет тип указателя на функцию, которая принимает
+// вектор и вспомогательные данные, возвращая норму этого вектора.
+int InitVector(vector *vec, int size);
+int createVector(vector *vec, int size, ...);
+double FirstNorm(vector vec, void *arg);
+double SecondNorm(vector vec, void *arg);
+double ThirdNorm(vector vec, void *arg);
+finaly_ans Task(int n, int count, double eps, double p, vector *matrix, universal FirstNorm,
+                universal SecondNorm, universal ThirdNorm, ...);

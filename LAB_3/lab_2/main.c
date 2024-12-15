@@ -2,83 +2,110 @@
 
 int main()
 {
-    unsigned int n = 3; // размерность
-    vector vect_1, vect_2, vect_3;
-    enum Errors error_1 = vector_init(n, &vect_1, 3.0, -2.0, 5.0);
-    if (error_1 == INVALID_MEMORY)
+    vector vec;
+    vector first;
+    vector second;
+    if (createVector(&vec, 2, 1.2, 1.3))
     {
-        printf("Invalid memory: baaaad\n");
+        printf("memory trouble");
         return INVALID_MEMORY;
     }
-    else if ((error_1) == INVALID_INPUT)
+    if (createVector(&first, 2, 1.5, 0.1))
     {
-        return INVALID_INPUT;
-    }
-
-    enum Errors error_2 = vector_init(n, &vect_2, 6.0, 1.0, 1.0);
-    if (error_2 == INVALID_MEMORY)
-    {
-        vector_kill(&vect_1);
-        printf("Invalid memory: baaaad\n");
+        free(vec.mass);
+        printf("memory trouble");
         return INVALID_MEMORY;
     }
-    else if ((error_2) == INVALID_INPUT)
+    if (createVector(&second, 2, 0.1, 1.5))
     {
-        vector_kill(&vect_1);
-        return INVALID_INPUT;
-    }
-
-    enum Errors error_3 = vector_init(n, &vect_3, 1.0, 1.0, 1.0);
-    if (error_3 == INVALID_MEMORY)
-    {
-        vector_kill(&vect_1);
-        vector_kill(&vect_2);
-
-        printf("Invalid memory: baaaad\n");
+        free(vec.mass);
+        free(first.mass);
+        printf("memory trouble");
         return INVALID_MEMORY;
     }
-    else if ((error_3) == INVALID_INPUT)
+    int size = vec.size;
+    vector *matrix = (vector *)malloc(sizeof(vector) * size);
+    if (matrix == NULL)
     {
-        vector_kill(&vect_1);
-        vector_kill(&vect_2);
-        return INVALID_INPUT;
+        free(vec.mass);
+        free(first.mass);
+        free(second.mass);
+        printf("memory trouble");
+        return INVALID_MEMORY;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        matrix[i].mass = (double *)calloc(size, sizeof(double));
+        if (matrix[i].mass == NULL)
+        {
+            for (int j = i - 1; j >= 0; j--)
+            {
+                free(matrix[j].mass);
+            }
+            free(matrix);
+            free(vec.mass);
+            free(first.mass);
+            free(second.mass);
+            printf("memory trouble");
+            return INVALID_MEMORY;
+        }
+        matrix[i].mass[i] = 1.0; // 2 на 2 единичн матрица
     }
 
-    vector *result_1 = NULL;
-    vector *result_2 = NULL;
-    vector *result_3 = NULL;
-    int size_1, size_2, size_3;
-    enum Errors error = main_func(2, norm_inf, norm_p, norm_m, &size_1, &size_2,
-                                  &size_3, &result_1, &result_2, &result_3, &vect_1, &vect_2, &vect_3);
-    if (error != OK)
+    finaly_ans ans; // размерномть,кол-ов векторов,эпсилон,р
+    ans = Task(2, 3, 0.0001, 1.0, matrix, FirstNorm, SecondNorm, ThirdNorm, vec, first, second);
+    switch (ans.status)
     {
-        vector_kill(&vect_1);
-        vector_kill(&vect_2);
-        vector_kill(&vect_3);
-        printf("Error: everything is not good \n");
-        return error;
+    case OK:
+        printf("Norm 1 %d:\n", ans.anses1 + 1);
+        for (int i = 0; i <= ans.anses1; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                printf("%f ", ans.ans1[i].mass[j]);
+            }
+            printf("\n");
+        }
+        printf("Norm 2 %d:\n", ans.anses2 + 1);
+        for (int i = 0; i <= ans.anses2; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                printf("%f ", ans.ans2[i].mass[j]);
+            }
+            printf("\n");
+        }
+        printf("Norm 3 %d:\n", ans.anses3 + 1);
+        for (int i = 0; i <= ans.anses3; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                printf("%f ", ans.ans3[i].mass[j]);
+            }
+            printf("\n");
+        }
+        break;
+    case INVALID_INPUT:
+        printf("incorrect arguments");
+        break;
+    case INVALID_MEMORY:
+        free(matrix);
+        free(vec.mass);
+        free(first.mass);
+        free(second.mass);
+        printf("memory trouble");
+        return INVALID_MEMORY;
     }
-    printf("Result:\n");
-    printf("norm inf:\n");
-    for (int i = 0; i < size_1; i++)
+    for (int i = 0; i < size; i++)
     {
-        print_vect(&result_1[i]);
+        free(matrix[i].mass);
     }
-    printf("norm p:\n");
-    for (int i = 0; i < size_2; i++)
-    {
-        print_vect(&result_2[i]);
-    }
-    printf("norm A:\n");
-    for (int i = 0; i < size_3; i++)
-    {
-        print_vect(&result_3[i]);
-    }
-    vector_kill(&vect_1);
-    vector_kill(&vect_2);
-    vector_kill(&vect_3);
-
-    free(result_1);
-    free(result_2);
-    free(result_3);
+    free(matrix);
+    free(vec.mass);
+    free(first.mass);
+    free(second.mass);
+    free(ans.ans1);
+    free(ans.ans2);
+    free(ans.ans3);
+    return ans.status;
 }

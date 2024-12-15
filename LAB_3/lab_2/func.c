@@ -1,301 +1,197 @@
 #include "header.h"
-
-enum Errors vector_init(int n, vector *vect, ...)
+int InitVector(vector *vec, int size)
 {
-    if (vect == NULL)
+    vec->size = size;
+    vec->mass = (double *)calloc(size, sizeof(double)); // выделяет память под массив
+    if (vec->mass == NULL)
     {
-        return INVALID_INPUT;
-    }
-    if (n < 0)
-    {
-        printf("Uncorrect n\n");
-        return INVALID_INPUT;
-    }
-    vect->n = n;
-    double *coordinats = (double *)malloc(n * sizeof(double));
-    if (coordinats == NULL)
-    {
-        printf("Error allocation\n");
         return INVALID_MEMORY;
     }
-    vect->coordinats = coordinats;
-    va_list arg;
-    va_start(arg, vect);
-    for (int i = 0; i < n; i++)
-    {
-        vect->coordinats[i] = va_arg(arg, double);
-    }
-
-    va_end(arg);
     return OK;
 }
-// освбожодаем память и сбрасываем поля структуры
-enum Errors vector_kill(vector *vect)
+int createVector(vector *vec, int size, ...)
 {
-    if (vect == NULL)
+    if (InitVector(vec, size))
     {
-        return INVALID_INPUT;
+        return INVALID_MEMORY;
     }
-    free(vect->coordinats);
-    vect->n = 0;
-    vect->coordinats = NULL;
+    va_list args;
+    va_start(args, size);
+    for (int i = 0; i < size; i++)
+    {
+        vec->mass[i] = va_arg(args, double);
+    }
+    va_end(args);
     return OK;
 }
 
-void print_vect(vector *vect)
+double FirstNorm(vector vec, void *arg)
 {
-    for (int i = 0; i < vect->n; i++)
+    (void)arg;
+    double ans = 0; // хранение тек макс знач
+    for (int i = 0; i < vec.size; i++)
     {
-        printf("%.3f ", vect->coordinats[i]);
-    }
-    printf("\n");
-}
-// just abs
-enum Errors norm_inf(vector *vect, double *norm)
-{
-    if (vect == NULL || norm == NULL)
-    {
-        return INVALID_INPUT;
-    }
-    double max_val = 0.0;
-    for (int i = 0; i < vect->n; i++)
-    {
-        double current_element = vect->coordinats[i];
-
-        double absolute_value = fabs(current_element);
-
-        if (absolute_value > max_val)
+        if (fabs(vec.mass[i]) > ans)
         {
-            max_val = absolute_value;
+            ans = fabs(vec.mass[i]);
         }
     }
-
-    *norm = max_val;
-
-    return OK;
+    return ans;
 }
-//
-enum Errors norm_p(vector *vect, double *norm, unsigned int p)
+
+double SecondNorm(vector vec, void *arg)
 {
-    if (vect == NULL || norm == NULL)
+    // явное приведение
+    double p = *(double *)arg;
+    double ans = 0; // промежут норма
+    for (int i = 0; i < vec.size; i++)
     {
-        return INVALID_INPUT;
+        ans += pow(fabs(vec.mass[i]), p);
     }
+    return pow(ans, 1 / p);
+}
+
+double ThirdNorm(vector vec, void *arg)
+{
+    vector *matrix = (vector *)arg;
+    int size = vec.size;
+    double help[size]; // промеж рез
+    double ans = 0;    // рез
+    // идем по строкам матрицы
+    for (int i = 0; i < size; i++)
+    {
+        help[i] = 0;
+        for (int j = 0; j < size; j++)
+        {
+            help[i] += matrix[i].mass[j] * vec.mass[j];
+        }
+    } // скалярное произв итой стр матрицы и вектора
+    for (int i = 0; i < size; i++)
+    {
+        ans += help[i] * vec.mass[i];
+    }
+    return sqrt(ans);
+}
+
+// Сохраняет те векторы, которые имеют максимум по каждой из норм
+finaly_ans Task(int n, int count, double eps, double p, vector *matrix, universal FirstNorm,
+                universal SecondNorm, universal ThirdNorm, ...)
+{
+    finaly_ans ans;
+    ans.status = OK;
     if (p < 1)
     {
-        printf("Uncorrect p\n");
-        return INVALID_INPUT;
+        ans.status = INVALID_INPUT;
+        return ans;
     }
-    double sum = 0.0;
-    for (int i = 0; i < vect->n; i++)
+    va_list args;
+    ans.ans1 = (vector *)calloc(1, sizeof(vector));
+    if (ans.ans1 == NULL)
     {
-        double abs_val = fabs(vect->coordinats[i]);
-        double pow_val = pow(abs_val, p);
-        sum += pow_val;
+        ans.status = INVALID_MEMORY;
+        return ans;
     }
-    double norm_val = pow(sum, 1.0 / p);
-    *norm = norm_val;
-    return OK;
-}
-
-enum Errors matrix_multipl(double **A, double *x, double **result, int n)
-{
-    *result = (double *)malloc(sizeof(double) * n);
-    if (*result == NULL)
+    ans.size1 = 1;
+    ans.ans2 = (vector *)calloc(1, sizeof(vector));
+    if (ans.ans2 == NULL)
     {
-        return INVALID_MEMORY;
+        free(ans.ans1);
+        ans.status = INVALID_MEMORY;
+        return ans;
     }
-
-    for (int i = 0; i < n; i++)
+    ans.size2 = 1;
+    ans.ans3 = (vector *)calloc(1, sizeof(vector));
+    if (ans.ans3 == NULL)
     {
-        (*result)[i] = 0.0;
-        for (int j = 0; j < n; j++)
+        free(ans.ans2);
+        free(ans.ans3);
+        ans.status = INVALID_MEMORY;
+        return ans;
+    }
+    ans.size3 = 1;
+    va_start(args, ThirdNorm);
+    vector current;
+    vector *tmp;
+    for (int i = 0; i < count; i++)
+    {
+        current = va_arg(args, vector);
+        if (current.size != n)
         {
-            (*result)[i] += A[i][j] * x[j];
-        }
-    }
-
-    return OK;
-}
-
-//
-enum Errors norm_m(vector *vect, double *norm)
-{
-    if (vect == NULL || vect->coordinats == NULL || norm == NULL)
-    {
-        return INVALID_MEMORY;
-    }
-
-    int n = vect->n;
-    double **A = NULL;
-    double *result = NULL;
-    int i, j;
-
-    // Выделение памяти для матрицы A
-    A = (double **)malloc(sizeof(double *) * n);
-    if (A == NULL)
-    {
-        return INVALID_MEMORY;
-    }
-
-    for (i = 0; i < n; i++)
-    {
-        A[i] = (double *)malloc(sizeof(double) * n);
-        if (A[i] == NULL)
+            ans.status = INVALID_INPUT;
+            return ans;
+        } // если текущ норма превышает  макс найд, то обновл массив
+        if (FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL) > eps)
         {
-            for (j = 0; j < i; j++)
-            {
-                free(A[j]);
+            ans.anses1 = 0;                 // инд макс вект уст в 0
+            ans.ans1[ans.anses1] = current; // устанавл новый макс
+
+        } // если равен норме
+        else if (fabs(FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL)) <= eps)
+        {
+            ans.anses1++; // добавл тек вект в конец
+            if (ans.anses1 >= ans.size1)
+            { // при переполн массива удв размер
+                ans.size1 = ans.anses1 * 2;
+                tmp = (vector *)realloc(ans.ans1, ans.size1 * sizeof(vector));
+                if (tmp == NULL)
+                {
+                    free(ans.ans2);
+                    free(ans.ans3);
+                    ans.status = INVALID_MEMORY;
+                    return ans;
+                }
+                ans.ans1 = tmp;
             }
-            free(A);
-            return INVALID_MEMORY;
+            ans.ans1[ans.anses1] = current; // текущ вект в массив макс векторв добавл
         }
-        // Единичная матрица - положительно определенная
-        for (j = 0; j < n; ++j)
+
+        if (SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p) > eps)
         {
-            if (i == j)
+            ans.anses2 = 0;
+            ans.ans2[ans.anses2] = current;
+        }
+        else if (fabs(SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p)) <= eps)
+        {
+            ans.anses2++;
+            if (ans.anses2 >= ans.size2)
             {
-                A[i][j] = 1;
+                ans.size2 = ans.anses2 * 2;
+                tmp = (vector *)realloc(ans.ans2, ans.size2 * sizeof(vector));
+                if (tmp == NULL)
+                {
+                    free(ans.ans1);
+                    free(ans.ans3);
+                    ans.status = INVALID_MEMORY;
+                    return ans;
+                }
+                ans.ans2 = tmp;
             }
-            else
+            ans.ans2[ans.anses2] = current;
+        }
+
+        if (ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix) > eps)
+        {
+            ans.anses3 = 0;
+            ans.ans3[ans.anses3] = current;
+        }
+        else if (fabs(ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix)) <= eps)
+        {
+            ans.anses3++;
+            if (ans.anses3 >= ans.size3)
             {
-                A[i][j] = 0;
+                ans.size3 = ans.anses3 * 2;
+                vector *tmp = (vector *)realloc(ans.ans3, ans.size3 * sizeof(vector));
+                if (tmp == NULL)
+                {
+                    free(ans.ans1);
+                    free(ans.ans2);
+                    ans.status = INVALID_MEMORY;
+                    return ans;
+                }
+                ans.ans3 = tmp;
             }
+            ans.ans3[ans.anses3] = current;
         }
     }
-
-    // Умножение матрицы A на вектор vect->elems
-    if (matrix_multipl(A, vect->coordinats, &result, n) == INVALID_MEMORY)
-    {
-        for (i = 0; i < n; ++i)
-        {
-            free(A[i]);
-        }
-        free(A);
-        return INVALID_MEMORY;
-    }
-
-    // Вычисление нормы вектора
-    *norm = 0;
-    for (i = 0; i < n; ++i)
-    {
-        *norm += result[i] * vect->coordinats[i];
-    }
-
-    // Освобождение памяти
-    for (i = 0; i < n; ++i)
-    {
-        free(A[i]);
-    }
-    free(A);
-    free(result);
-
-    // Вычисление квадратного корня из нормы
-    *norm = sqrt(*norm);
-    return OK;
-}
-
-enum Errors main_func(unsigned int p,
-                      enum Errors (*norm_inf)(vector *, double *),
-                      enum Errors (*norm_p)(vector *, double *, unsigned int),
-                      enum Errors (*norm_m)(vector *, double *),
-                      int *size_1, int *size_2, int *size_3,
-                      vector **result_1, vector **result_2, vector **result_3, ...)
-{ // valid dont forget
-    if (size_1 == NULL || size_2 == NULL || size_3 == NULL ||
-        result_1 == NULL || result_2 == NULL || result_3 == NULL)
-    {
-        return INVALID_INPUT;
-    }
-
-    int quantity = 3; // Количество переданных векторов
-    (*result_1) = (vector *)malloc(sizeof(vector) * quantity);
-    if (*result_1 == NULL)
-    {
-        return INVALID_MEMORY;
-    }
-    (*result_2) = (vector *)malloc(sizeof(vector) * quantity);
-    if (*result_2 == NULL)
-    {
-        free(*result_1);
-        return INVALID_MEMORY;
-    }
-    (*result_3) = (vector *)malloc(sizeof(vector) * quantity);
-    if (*result_3 == NULL)
-    {
-        free(*result_1);
-        free(*result_2);
-        return INVALID_MEMORY;
-    }
-
-    va_list ptr;
-    va_start(ptr, result_3);
-
-    int ind_1 = 0, ind_2 = 0, ind_3 = 0;
-    double max_1 = 0, max_2 = 0, max_3 = 0, cur_1, cur_2, cur_3;
-    for (int i = 0; i < quantity; i++)
-    {
-        vector *vec = va_arg(ptr, vector *);
-
-        norm_inf(vec, &cur_1);
-        if (fabs(cur_1 - max_1) < Eps)
-        {
-            ind_1++;
-            (*result_1)[ind_1] = *vec;
-        }
-        else if (cur_1 - max_1 > Eps)
-        {
-            max_1 = cur_1;
-            ind_1 = 0;
-            (*result_1)[0] = *vec;
-        }
-
-        if (norm_p(vec, &cur_2, p) == INVALID_INPUT)
-        {
-            free(*result_1);
-            free(*result_2);
-            free(*result_3);
-            return INVALID_INPUT;
-        }
-
-        if (fabs(cur_2 - max_2) < Eps)
-        {
-            ind_2++;
-            (*result_2)[ind_2] = *vec;
-        }
-        else if (cur_2 - max_2 > Eps)
-        {
-            max_2 = cur_2;
-            ind_2 = 0;
-            (*result_2)[0] = *vec;
-        }
-
-        if (norm_m(vec, &cur_3) == INVALID_MEMORY)
-        {
-            free(*result_1);
-            free(*result_2);
-            free(*result_3);
-            return INVALID_MEMORY;
-        }
-
-        if (fabs(cur_3 - max_3) < Eps)
-        {
-            ind_3++;
-            (*result_3)[ind_3] = *vec;
-        }
-        else if (cur_3 - max_3 > Eps)
-        {
-            max_3 = cur_3;
-            ind_3 = 0;
-            (*result_3)[0] = *vec;
-        }
-    }
-
-    va_end(ptr);
-
-    *size_1 = ind_1 + 1;
-    *size_2 = ind_2 + 1;
-    *size_3 = ind_3 + 1;
-
-    return OK;
+    return ans;
 }
