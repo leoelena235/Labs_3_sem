@@ -1,4 +1,33 @@
 #include "header.h"
+typedef double (*universal)(vector, void *);
+//Эта функция копирует данные из одного вектора 
+//в другой, выделяя память для нового массива координат.
+int CopyVector(vector *dst, const vector *src) {
+    if (src == NULL || dst == NULL || src->mass == NULL) {
+        return INVALID_INPUT;
+    }
+
+    // Если вектор назначения уже имеет выделенную память, освобождаем её
+    if (dst->mass != NULL) {
+        free(dst->mass);
+    }
+
+    dst->size = src->size;
+    dst->mass = (double *)malloc(src->size * sizeof(double));
+    if (dst->mass == NULL) {
+        return INVALID_MEMORY;
+    }
+
+    // Копируем данные
+    for (int i = 0; i < src->size; i++) {
+        dst->mass[i] = src->mass[i];
+    }
+
+    return OK;
+}
+
+
+
 int InitVector(vector *vec, int size)
 {
     vec->size = size;
@@ -75,66 +104,65 @@ double ThirdNorm(vector vec, void *arg)
 
 // Сохраняет те векторы, которые имеют максимум по каждой из норм
 finaly_ans Task(int n, int count, double eps, double p, vector *matrix, universal FirstNorm,
-                universal SecondNorm, universal ThirdNorm, ...)
-{
+                universal SecondNorm, universal ThirdNorm, ...) {
     finaly_ans ans;
     ans.status = OK;
-    if (p < 1)
-    {
+
+    // Проверка параметров
+    if (p < 1 || matrix == NULL) {
         ans.status = INVALID_INPUT;
         return ans;
     }
-    va_list args;
+
+    // Инициализация массивов
     ans.ans1 = (vector *)calloc(1, sizeof(vector));
-    if (ans.ans1 == NULL)
-    {
-        ans.status = INVALID_MEMORY;
-        return ans;
-    }
-    ans.size1 = 1;
     ans.ans2 = (vector *)calloc(1, sizeof(vector));
-    if (ans.ans2 == NULL)
-    {
-        free(ans.ans1);
-        ans.status = INVALID_MEMORY;
-        return ans;
-    }
-    ans.size2 = 1;
     ans.ans3 = (vector *)calloc(1, sizeof(vector));
-    if (ans.ans3 == NULL)
-    {
+    if (ans.ans1 == NULL || ans.ans2 == NULL || ans.ans3 == NULL) {
+        free(ans.ans1);
         free(ans.ans2);
         free(ans.ans3);
         ans.status = INVALID_MEMORY;
         return ans;
     }
-    ans.size3 = 1;
+
+    ans.size1 = ans.size2 = ans.size3 = 1;
+    ans.anses1 = ans.anses2 = ans.anses3 = 0;
+
+    va_list args;
     va_start(args, ThirdNorm);
-    vector current;
-    vector *tmp;
-    for (int i = 0; i < count; i++)
-    {
-        current = va_arg(args, vector);
-        if (current.size != n)
-        {
+
+    for (int i = 0; i < count; i++) {
+        vector current = va_arg(args, vector);
+
+        if (current.size != n) {
+            va_end(args);
+            free(ans.ans1);
+            free(ans.ans2);
+            free(ans.ans3);
             ans.status = INVALID_INPUT;
             return ans;
-        } // если текущ норма превышает  макс найд, то обновл массив
-        if (FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL) > eps)
-        {
-            ans.anses1 = 0;                 // инд макс вект уст в 0
-            ans.ans1[ans.anses1] = current; // устанавл новый макс
+        }
 
-        } // если равен норме
-        else if (fabs(FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL)) <= eps)
-        {
-            ans.anses1++; // добавл тек вект в конец
-            if (ans.anses1 >= ans.size1)
-            { // при переполн массива удв размер
-                ans.size1 = ans.anses1 * 2;
+        vector *tmp;
+
+        // Норма 1
+        if (FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL) > eps) {
+            ans.anses1 = 0;
+            if (CopyVector(&ans.ans1[ans.anses1], &current) != OK) {
+                free(ans.ans1);
+                free(ans.ans2);
+                free(ans.ans3);
+                ans.status = INVALID_MEMORY;
+                return ans;
+            }
+        } else if (fabs(FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL)) <= eps) {
+            ans.anses1++;
+            if (ans.anses1 >= ans.size1) {
+                ans.size1 *= 2;
                 tmp = (vector *)realloc(ans.ans1, ans.size1 * sizeof(vector));
-                if (tmp == NULL)
-                {
+                if (tmp == NULL) {
+                    free(ans.ans1);
                     free(ans.ans2);
                     free(ans.ans3);
                     ans.status = INVALID_MEMORY;
@@ -142,56 +170,64 @@ finaly_ans Task(int n, int count, double eps, double p, vector *matrix, universa
                 }
                 ans.ans1 = tmp;
             }
-            ans.ans1[ans.anses1] = current; // текущ вект в массив макс векторв добавл
+            CopyVector(&ans.ans1[ans.anses1], &current);
         }
 
-        if (SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p) > eps)
-        {
+        // Норма 2
+        if (SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p) > eps) {
             ans.anses2 = 0;
-            ans.ans2[ans.anses2] = current;
-        }
-        else if (fabs(SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p)) <= eps)
-        {
+            if (CopyVector(&ans.ans2[ans.anses2], &current) != OK) {
+                free(ans.ans1);
+                free(ans.ans2);
+                free(ans.ans3);
+                ans.status = INVALID_MEMORY;
+                return ans;
+            }
+        } else if (fabs(SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p)) <= eps) {
             ans.anses2++;
-            if (ans.anses2 >= ans.size2)
-            {
-                ans.size2 = ans.anses2 * 2;
+            if (ans.anses2 >= ans.size2) {
+                ans.size2 *= 2;
                 tmp = (vector *)realloc(ans.ans2, ans.size2 * sizeof(vector));
-                if (tmp == NULL)
-                {
+                if (tmp == NULL) {
                     free(ans.ans1);
+                    free(ans.ans2);
                     free(ans.ans3);
                     ans.status = INVALID_MEMORY;
                     return ans;
                 }
                 ans.ans2 = tmp;
             }
-            ans.ans2[ans.anses2] = current;
+            CopyVector(&ans.ans2[ans.anses2], &current);
         }
 
-        if (ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix) > eps)
-        {
+        // Норма 3
+        if (ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix) > eps) {
             ans.anses3 = 0;
-            ans.ans3[ans.anses3] = current;
-        }
-        else if (fabs(ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix)) <= eps)
-        {
+            if (CopyVector(&ans.ans3[ans.anses3], &current) != OK) {
+                free(ans.ans1);
+                free(ans.ans2);
+                free(ans.ans3);
+                ans.status = INVALID_MEMORY;
+                return ans;
+            }
+        } else if (fabs(ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix)) <= eps) {
             ans.anses3++;
-            if (ans.anses3 >= ans.size3)
-            {
-                ans.size3 = ans.anses3 * 2;
-                vector *tmp = (vector *)realloc(ans.ans3, ans.size3 * sizeof(vector));
-                if (tmp == NULL)
-                {
+            if (ans.anses3 >= ans.size3) {
+                ans.size3 *= 2;
+                tmp = (vector *)realloc(ans.ans3, ans.size3 * sizeof(vector));
+                if (tmp == NULL) {
                     free(ans.ans1);
                     free(ans.ans2);
+                    free(ans.ans3);
                     ans.status = INVALID_MEMORY;
                     return ans;
                 }
                 ans.ans3 = tmp;
             }
-            ans.ans3[ans.anses3] = current;
+            CopyVector(&ans.ans3[ans.anses3], &current);
         }
     }
+
+    va_end(args);
     return ans;
 }
