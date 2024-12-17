@@ -1,71 +1,99 @@
 #include "header.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 finalyAns *Task(char *str, ...)
 {
+    if (!str)
+        return NULL;
+    // Длина подстроки
     int len = SizeOfStr(str);
+    if (len == 0)
+    {
+        return NULL; 
+    }
+
+    // Выделение памяти для префикс-функции
+    int *prefix_mass = (int *)malloc(len * sizeof(int));
+    if (!prefix_mass)
+    {
+        return NULL; 
+    }
+
+    // Вычисление префикс-функции
+    calculate_prefix(str, prefix_mass, len);
+
     va_list args;
     va_start(args, str);
-    int prefix_mass[len];//TODO:VLA
-    char *filename = "c";
-    calculate_prefix(str, prefix_mass, len);
-    finalyAns *answer = NULL;
+
+    finalyAns *answer = NULL; // Основной массив результатов
     finalyAns *tmp = NULL;
-    values *ans = NULL;
-    // счетчик вхождений в одном файле
-    int count_ans = 0;
-    int count_files = 0;
+    int count_files = 0; // Счётчик обработанных файлов
+
     while (1)
     {
-        count_ans = 0;
-        ans = NULL;
-        filename = va_arg(args, char *);
-        if (filename == NULL)
+        char *filename = va_arg(args, char *);
+        if (!filename)
         {
-            break;
+            break; // Конец списка аргументов
         }
+
         count_files++;
-        count_ans = StrInFile(str, filename, prefix_mass, len, &ans);
+
+        // Расширение массива результатов для нового файла
         tmp = (finalyAns *)realloc(answer, count_files * sizeof(finalyAns));
-        if (tmp == NULL)
+        if (!tmp)
         {
-            return NULL;
+            free(answer);
+            free(prefix_mass);
+            return NULL; // Ошибка выделения памяти
         }
         answer = tmp;
-        answer[count_files - 1].filename = filename; // сохр имя файла
-        if (count_ans == OPEN_PROBLEM && ans == NULL)
+
+        values *ans = NULL; // Для хранения результатов поиска в текущем файле
+        int count_ans = StrInFile(str, filename, prefix_mass, len, &ans);
+
+        answer[count_files - 1].filename = filename;
+
+        if (count_ans == OPEN_PROBLEM)
         {
             answer[count_files - 1].status = OPEN_PROBLEM;
             continue;
         }
-        else if (count_ans == INVALID_MEMORY && ans == NULL)
+        if (count_ans == INVALID_MEMORY)
         {
             answer[count_files - 1].status = INVALID_MEMORY;
             continue;
         }
+
+        // Запись результата для текущего файла
         answer[count_files - 1].status = OK;
         answer[count_files - 1].ans_for_file = ans;
         answer[count_files - 1].ans_for_file_len = count_ans;
     }
+
     if (count_files > 0)
     {
-        answer[0].count_files = count_files;
+        answer[0].count_files = count_files; // Сохраняем общее количество файлов
     }
+
+    free(prefix_mass); // Освобождаем память для префикс-функции
     va_end(args);
     return answer;
 }
 
-void calculate_prefix(char *str, int prefix_mass[], int len)
+void calculate_prefix(char *str, int *prefix_mass, int len)
 {
-    prefix_mass[0] = 0; // нулевой симв не имеет префикса
+    prefix_mass[0] = 0;
     int prefix_len = 0;
+
     for (int i = 1; i < len; i++)
     {
-        // если последний символ суффикса не совпадает с последним символом префикса,
-        // то пытаемся найти совпадение с меньшей !возможной! длиной префикса
-        if (prefix_len > 0 && str[i] != str[prefix_len])
+        while (prefix_len > 0 && str[i] != str[prefix_len])
         {
             prefix_len = prefix_mass[prefix_len - 1];
         }
-        // при совпадении увеличиваем длину совпадающего префикса
         if (str[prefix_len] == str[i])
         {
             prefix_len++;
@@ -74,62 +102,71 @@ void calculate_prefix(char *str, int prefix_mass[], int len)
     }
 }
 
-// кмп
-int StrInFile(char *str, char *file, int prefix_mass[], int len, values **start)
+int StrInFile(char *str, char *file, int *prefix_mass, int len, values **start)
 {
-    FILE *in;
-    if ((in = fopen(file, "r")) == NULL)
+    FILE *in = fopen(file, "r");
+    if (!in)
     {
         return OPEN_PROBLEM;
     }
+
     char current;
-    // кол-во \n в подстроке
-    int count_n = checkStr(str);
-    int count_sovpad = 0;
-    // позиция в файле
-    int count = 0;
-    int count_str_number = 1;
-    int count_ans = 0;
-    // начало вхождения
-    int start_in = 0;
-    values *ans;
+    int count_n = checkStr(str); // Количество символов '\n' в подстроке
+    int count_sovpad = 0;        // Количество совпавших символов
+    int count = 0;               // Текущая позиция в строке файла
+    int count_str_number = 1;    // Номер текущей строки
+    int count_ans = 0;           // Количество найденных вхождений
+    int start_in = 0;            // Позиция начала текущего вхождения
+
+    values *ans = NULL;
+
     while ((current = fgetc(in)) != EOF)
     {
         count++;
-        // если не совпадает, то двигаем подстроку
+
+        // Проверяем совпадение символов строки и подстроки
         while (count_sovpad > 0 && current != str[count_sovpad])
         {
             count_sovpad = prefix_mass[count_sovpad - 1];
         }
-        // если совпдает, то увеличиваем совпадение строки и подстроки
+
         if (current == '\n')
         {
-            count = 0;
-            count_str_number++;
+            count = 0;          // Обнуляем позицию в строке
+            count_str_number++; // Переходим к следующей строке
         }
+
         if (count_sovpad == 0 && current == str[count_sovpad])
         {
             start_in = count;
         }
+
         if (current == str[count_sovpad])
         {
             count_sovpad++;
         }
-        // если нашли полное совпадение, то
+
+        // Полное совпадение найдено
         if (count_sovpad == len)
         {
             count_ans++;
+
+            // Расширение массива результатов для нового вхождения
             ans = (values *)realloc(*start, sizeof(values) * count_ans);
-            if (ans == NULL)
+            if (!ans)
             {
-                return INVALID_MEMORY;
+                fclose(in);
+                return INVALID_MEMORY; // Ошибка выделения памяти
             }
             *start = ans;
+
             ans[count_ans - 1].str_number = count_str_number - count_n;
             ans[count_ans - 1].symbol_number = start_in;
+
             count_sovpad = prefix_mass[count_sovpad - 1];
         }
     }
+
     fclose(in);
     return count_ans;
 }
@@ -146,13 +183,13 @@ int checkStr(char *s)
     }
     return ans;
 }
-// просто длина стр
+
 int SizeOfStr(char *s)
 {
     int ans = 0;
-    for (int i = 0; s[i] != 0; i++)
+    while (s[ans] != 0)
     {
-        ans = i + 1;
+        ans++;
     }
     return ans;
 }
