@@ -1,136 +1,42 @@
 #include "header.h"
-
 int main()
 {
-    vector vec;
-    vector first;
-    vector second;
+    vector v_1 = {.data = (double[]){-1.0, -100.0, -3.0, 10.0}, .n = 4};
+    vector v_2 = {.data = (double[]){0.0, 4.0, 6.0, 100.}, .n = 4};
+    size_t count_res = 0;
+    vector *res = NULL;
+    double matrix_A[] = {120., 21.0, 44.0, 55.5, 13., 12., 3., 4.,
+                         20, 9, 5, 3, 19, 25, 4, 25};
+    double p = 14.02;
 
-    if (createVector(&vec, 2, 1.2, 1.3))
+    switch (Task(&res, &count_res, 3, 3, v_1, v_2, v_2, spectr_norm, (void *)&matrix_A, inf_norm, NULL, p_norm, (void *)&p))
     {
-        printf("memory trouble");
+    case INVALID_MEMORY:
+        printf("Memory error\n");
+        delete_vector_arr(&res, count_res);
         return INVALID_MEMORY;
-    }
-    if (createVector(&first, 2, 1.5, 0.1))
-    {
-        free(vec.mass);
-        printf("memory trouble");
-        return INVALID_MEMORY;
-    }
-    if (createVector(&second, 2, 0.1, 1.5))
-    {
-        free(vec.mass);
-        free(first.mass);
-        printf("memory trouble");
-        return INVALID_MEMORY;
-    }
-
-    int size = vec.size;
-    vector *matrix = (vector *)malloc(sizeof(vector) * size);
-    if (matrix == NULL)
-    {
-        free(vec.mass);
-        free(first.mass);
-        free(second.mass);
-        printf("memory trouble");
-        return INVALID_MEMORY;
-    }
-
-    for (int i = 0; i < size; i++)
-    {
-        matrix[i].mass = (double *)calloc(size, sizeof(double));
-        if (matrix[i].mass == NULL)
-        {
-            for (int j = i - 1; j >= 0; j--)
-            {
-                free(matrix[j].mass);
-            }
-            free(matrix);
-            free(vec.mass);
-            free(first.mass);
-            free(second.mass);
-            printf("memory trouble");
-            return INVALID_MEMORY;
-        }
-        matrix[i].mass[i] = 1.0; // 2x2 единичная матрица
-    }
-
-    finaly_ans ans; // размерность, количество векторов, epsilon, p
-    ans = Task(2, 3, 0.0001, 1.0, matrix, FirstNorm, SecondNorm, ThirdNorm, vec, first, second);
-
-    switch (ans.status)
-    {
-    case OK:
-        printf("Norm 1 %d:\n", ans.anses1 + 1);
-        for (int i = 0; i <= ans.anses1; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                printf("%f ", ans.ans1[i].mass[j]);
-            }
-            printf("\n");
-        }
-
-        printf("Norm 2 %d:\n", ans.anses2 + 1);
-        for (int i = 0; i <= ans.anses2; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                printf("%f ", ans.ans2[i].mass[j]);
-            }
-            printf("\n");
-        }
-
-        printf("Norm 3 %d:\n", ans.anses3 + 1);
-        for (int i = 0; i <= ans.anses3; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                printf("%f ", ans.ans3[i].mass[j]);
-            }
-            printf("\n");
-        }
-        break;
 
     case INVALID_INPUT:
-        printf("incorrect arguments");
-        break;
-
-    case INVALID_MEMORY:
-        printf("memory trouble");
-        break;
+        printf("Input error\n");
+        delete_vector_arr(&res, count_res);
+        return INVALID_INPUT;
+    case OK:
+        for (size_t i = 0; i < count_res - 1; ++i)
+        {
+            if (!res[i].data)
+            {
+                putchar('\n');
+                continue;
+            }
+            printf("( ");
+            for (size_t j = 0; j < res[i].n; ++j)
+            {
+                printf("%lf ", res[i].data[j]);
+            }
+            printf(")\n");
+        }
     }
 
-    // Освобождение памяти для matrix
-    for (int i = 0; i < size; i++)
-    {
-        free(matrix[i].mass);
-    }
-    free(matrix);
-
-    // Освобождение памяти для исходных векторов
-    free(vec.mass);
-    free(first.mass);
-    free(second.mass);
-
-    // Освобождение памяти для finaly_ans
-    for (int i = 0; i <= ans.anses1; i++)
-    {
-        free(ans.ans1[i].mass);
-    }
-    free(ans.ans1);
-
-    for (int i = 0; i <= ans.anses2; i++)
-    {
-        free(ans.ans2[i].mass);
-    }
-    free(ans.ans2);
-
-    for (int i = 0; i <= ans.anses3; i++)
-    {
-        free(ans.ans3[i].mass);
-    }
-    free(ans.ans3);
-
-    return ans.status;
+    delete_vector_arr(&res, count_res);
+    return 0;
 }

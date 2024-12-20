@@ -1,233 +1,171 @@
 #include "header.h"
-typedef double (*universal)(vector, void *);
-//Эта функция копирует данные из одного вектора 
-//в другой, выделяя память для нового массива координат.
-int CopyVector(vector *dst, const vector *src) {
-    if (src == NULL || dst == NULL || src->mass == NULL) {
+#include <math.h>
+
+Errors copy_vector(const vector *source, vector *dest)
+{
+    size_t i;
+    if (!source || !dest)
+        return INVALID_MEMORY;
+
+    dest->n = source->n;
+    dest->data = (double *)malloc(dest->n * sizeof(double));
+    if (!dest->data)
         return INVALID_INPUT;
-    }
 
-    // Если вектор назначения уже имеет выделенную память, освобождаем её
-    if (dst->mass != NULL) {
-        free(dst->mass);
+    for (i = 0; i < dest->n; ++i)
+    {
+        dest->data[i] = source->data[i];
     }
-
-    dst->size = src->size;
-    dst->mass = (double *)malloc(src->size * sizeof(double));
-    if (dst->mass == NULL) {
-        return INVALID_MEMORY;
-    }
-
-    // Копируем данные
-    for (int i = 0; i < src->size; i++) {
-        dst->mass[i] = src->mass[i];
-    }
-
     return OK;
 }
 
-
-
-int InitVector(vector *vec, int size)
+void delete_vector_arr(vector **arr, size_t size)
 {
-    vec->size = size;
-    vec->mass = (double *)calloc(size, sizeof(double)); // выделяет память под массив
-    if (vec->mass == NULL)
+    size_t i;
+    if (!arr || !*arr)
+        return;
+
+    for (i = 0; i < size; ++i)
     {
-        return INVALID_MEMORY;
+        free((*arr)[i].data);
     }
-    return OK;
+    free(*arr);
+    *arr = NULL;
 }
-int createVector(vector *vec, int size, ...)
+
+Errors Task(vector **res, size_t *count_res, size_t count_vectors, size_t count_norms, ...)
 {
-    if (InitVector(vec, size))
-    {
-        return INVALID_MEMORY;
-    }
+    size_t capacity, size_max_len_vector;
+    vector *temp_res, *all_vectors;
     va_list args;
-    va_start(args, size);
-    for (int i = 0; i < size; i++)
+    size_t *max_len_vector;
+    vector separator = {.data = NULL, .n = 0};
+    if (!res || !count_res || !count_vectors || !count_norms)
+        return INVALID_MEMORY;
+
+    capacity = count_vectors * count_norms + count_vectors;
+    temp_res = (vector *)malloc(sizeof(vector) * capacity);
+    if (temp_res == NULL)
+        return INVALID_INPUT;
+
+    all_vectors = (vector *)malloc(sizeof(vector) * count_vectors);
+    if (!all_vectors)
     {
-        vec->mass[i] = va_arg(args, double);
+        free(temp_res);
+        return INVALID_MEMORY;
+    }
+    max_len_vector = (size_t *)malloc(sizeof(size_t) * count_vectors);
+    if (!max_len_vector)
+    {
+        free(temp_res);
+        free(all_vectors);
+        return INVALID_MEMORY;
+    }
+
+    va_start(args, count_norms);
+
+    for (size_t i = 0; i < count_vectors; ++i)
+    {
+        all_vectors[i] = va_arg(args, vector);
+    }
+    for (size_t i = 0; i < count_norms; i++)
+    {
+        norm_t norma = va_arg(args, norm_t);
+        void *arg = va_arg(args, void *);
+        double norma_res = 0;
+        double MAX = -INFINITY;
+        size_max_len_vector = 0;
+        for (size_t j = 0; j < count_vectors; j++)
+        {
+            norma_res = norma(&(all_vectors[j]), arg);
+            if (norma_res < 0)
+            {
+                delete_vector_arr(&temp_res, *count_res);
+                free(max_len_vector);
+                free(all_vectors);
+                va_end(args);
+                return INVALID_INPUT;
+            }
+            if (norma_res > MAX)
+            {
+                size_max_len_vector = 0;
+                MAX = norma_res;
+                max_len_vector[size_max_len_vector++] = j;
+            }
+            else if (norma_res == MAX)
+            {
+                max_len_vector[size_max_len_vector++] = j;
+            }
+        }
+        for (size_t j = 0; j < size_max_len_vector; ++j)
+        {
+            if (copy_vector(&all_vectors[max_len_vector[j]], &temp_res[(*count_res)++]))
+            {
+                delete_vector_arr(&temp_res, *count_res);
+                free(max_len_vector);
+                free(all_vectors);
+                va_end(args);
+                return INVALID_INPUT;
+            }
+        }
+        temp_res[(*count_res)++] = separator;
     }
     va_end(args);
+
+    free(all_vectors);
+    free(max_len_vector);
+    *res = temp_res;
     return OK;
 }
 
-double FirstNorm(vector vec, void *arg)
+double spectr_norm(vector *vec, void *args)
 {
-    (void)arg;
-    double ans = 0; // хранение тек макс знач
-    for (int i = 0; i < vec.size; i++)
+    double *matrix = (double *)args;
+    double res = 0;
+    if (!vec || !args)
+        return -1;
+
+    for (size_t i = 0; i < vec->n; i++)
     {
-        if (fabs(vec.mass[i]) > ans)
+        double temp_res = 0;
+        for (size_t j = 0; j < vec->n; j++)
         {
-            ans = fabs(vec.mass[i]);
+            temp_res += vec->data[j] * matrix[i * vec->n + j];
         }
+        res += temp_res * vec->data[i];
     }
-    return ans;
+    if (res < 0)
+        return -1;
+    return sqrt(res);
 }
 
-double SecondNorm(vector vec, void *arg)
+double inf_norm(vector *vec, void *)
 {
-    // явное приведение
-    double p = *(double *)arg;
-    double ans = 0; // промежут норма
-    for (int i = 0; i < vec.size; i++)
+    double res = 0;
+    size_t i;
+    if (!vec)
+        return -1;
+
+    for (i = 0; i < vec->n; ++i)
     {
-        ans += pow(fabs(vec.mass[i]), p);
+        res = (fabs(vec->data[i]) > res) ? fabs(vec->data[i]) : res;
     }
-    return pow(ans, 1 / p);
+    return res;
 }
 
-double ThirdNorm(vector vec, void *arg)
+double p_norm(vector *vec, void *args)
 {
-    vector *matrix = (vector *)arg;
-    int size = vec.size;
-    double help[size]; // промеж рез
-    double ans = 0;    // рез
-    // идем по строкам матрицы
-    for (int i = 0; i < size; i++)
+    double res = 0, p;
+    size_t i;
+    if (!vec || !args)
+        return -1;
+    p = *(double *)args;
+    if (p < 1)
+        return -1;
+
+    for (i = 0; i < vec->n; ++i)
     {
-        help[i] = 0;
-        for (int j = 0; j < size; j++)
-        {
-            help[i] += matrix[i].mass[j] * vec.mass[j];
-        }
-    } // скалярное произв итой стр матрицы и вектора
-    for (int i = 0; i < size; i++)
-    {
-        ans += help[i] * vec.mass[i];
+        res += pow(fabs(vec->data[i]), p);
     }
-    return sqrt(ans);
-}
-
-// Сохраняет те векторы, которые имеют максимум по каждой из норм
-finaly_ans Task(int n, int count, double eps, double p, vector *matrix, universal FirstNorm,
-                universal SecondNorm, universal ThirdNorm, ...) {
-    finaly_ans ans;
-    ans.status = OK;
-
-    // Проверка параметров
-    if (p < 1 || matrix == NULL) {
-        ans.status = INVALID_INPUT;
-        return ans;
-    }
-
-    // Инициализация массивов
-    ans.ans1 = (vector *)calloc(1, sizeof(vector));
-    ans.ans2 = (vector *)calloc(1, sizeof(vector));
-    ans.ans3 = (vector *)calloc(1, sizeof(vector));
-    if (ans.ans1 == NULL || ans.ans2 == NULL || ans.ans3 == NULL) {
-        free(ans.ans1);
-        free(ans.ans2);
-        free(ans.ans3);
-        ans.status = INVALID_MEMORY;
-        return ans;
-    }
-
-    ans.size1 = ans.size2 = ans.size3 = 1;
-    ans.anses1 = ans.anses2 = ans.anses3 = 0;
-
-    va_list args;
-    va_start(args, ThirdNorm);
-
-    for (int i = 0; i < count; i++) {
-        vector current = va_arg(args, vector);
-
-        if (current.size != n) {
-            va_end(args);
-            free(ans.ans1);
-            free(ans.ans2);
-            free(ans.ans3);
-            ans.status = INVALID_INPUT;
-            return ans;
-        }
-
-        vector *tmp;
-
-        // Норма 1
-        if (FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL) > eps) {
-            ans.anses1 = 0;
-            if (CopyVector(&ans.ans1[ans.anses1], &current) != OK) {
-                free(ans.ans1);
-                free(ans.ans2);
-                free(ans.ans3);
-                ans.status = INVALID_MEMORY;
-                return ans;
-            }
-        } else if (fabs(FirstNorm(current, NULL) - FirstNorm(ans.ans1[0], NULL)) <= eps) {
-            ans.anses1++;
-            if (ans.anses1 >= ans.size1) {
-                ans.size1 *= 2;
-                tmp = (vector *)realloc(ans.ans1, ans.size1 * sizeof(vector));
-                if (tmp == NULL) {
-                    free(ans.ans1);
-                    free(ans.ans2);
-                    free(ans.ans3);
-                    ans.status = INVALID_MEMORY;
-                    return ans;
-                }
-                ans.ans1 = tmp;
-            }
-            CopyVector(&ans.ans1[ans.anses1], &current);
-        }
-
-        // Норма 2
-        if (SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p) > eps) {
-            ans.anses2 = 0;
-            if (CopyVector(&ans.ans2[ans.anses2], &current) != OK) {
-                free(ans.ans1);
-                free(ans.ans2);
-                free(ans.ans3);
-                ans.status = INVALID_MEMORY;
-                return ans;
-            }
-        } else if (fabs(SecondNorm(current, &p) - SecondNorm(ans.ans2[0], &p)) <= eps) {
-            ans.anses2++;
-            if (ans.anses2 >= ans.size2) {
-                ans.size2 *= 2;
-                tmp = (vector *)realloc(ans.ans2, ans.size2 * sizeof(vector));
-                if (tmp == NULL) {
-                    free(ans.ans1);
-                    free(ans.ans2);
-                    free(ans.ans3);
-                    ans.status = INVALID_MEMORY;
-                    return ans;
-                }
-                ans.ans2 = tmp;
-            }
-            CopyVector(&ans.ans2[ans.anses2], &current);
-        }
-
-        // Норма 3
-        if (ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix) > eps) {
-            ans.anses3 = 0;
-            if (CopyVector(&ans.ans3[ans.anses3], &current) != OK) {
-                free(ans.ans1);
-                free(ans.ans2);
-                free(ans.ans3);
-                ans.status = INVALID_MEMORY;
-                return ans;
-            }
-        } else if (fabs(ThirdNorm(current, matrix) - ThirdNorm(ans.ans3[0], matrix)) <= eps) {
-            ans.anses3++;
-            if (ans.anses3 >= ans.size3) {
-                ans.size3 *= 2;
-                tmp = (vector *)realloc(ans.ans3, ans.size3 * sizeof(vector));
-                if (tmp == NULL) {
-                    free(ans.ans1);
-                    free(ans.ans2);
-                    free(ans.ans3);
-                    ans.status = INVALID_MEMORY;
-                    return ans;
-                }
-                ans.ans3 = tmp;
-            }
-            CopyVector(&ans.ans3[ans.anses3], &current);
-        }
-    }
-
-    va_end(args);
-    return ans;
+    return pow(res, 1 / p);
 }
